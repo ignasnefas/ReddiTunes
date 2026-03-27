@@ -26,19 +26,46 @@ export async function fetchSubredditPosts(
     String(limit)
   )}&t=${encodeURIComponent(timeFilter)}${after ? `&after=${encodeURIComponent(after)}` : ''}`;
 
-  const response = await fetch(apiUrl);
+  try {
+    const response = await fetch(apiUrl, {
+      // Add timeout header hint for fetch
+      signal: AbortSignal.timeout(35000), // 35 second timeout for client-side
+    });
 
-  if (!response.ok) {
-    const body = await response.text().catch(() => '');
-    throw new Error(`Failed to fetch from r/${subreddit}: ${response.status} ${body}`);
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      
+      if (response.status === 404) {
+        throw new Error(`Subreddit r/${subreddit} not found (404)`);
+      } else if (response.status === 429) {
+        throw new Error(`Rate limited by Reddit - please wait and try again`);
+      } else if (response.status === 504) {
+        throw new Error(`Request timeout - the server took too long to respond. Try again with fewer tracks.`);
+      } else if (response.status >= 500) {
+        throw new Error(`Server error: ${response.status}`);
+      } else {
+        throw new Error(`Failed to fetch from r/${subreddit}: ${response.status} ${body}`);
+      }
+    }
+
+    const data = await response.json();
+    
+    // Verify response structure
+    if (!data.data || !Array.isArray(data.data.children)) {
+      throw new Error(`Invalid response structure from Reddit API`);
+    }
+
+    return {
+      posts: data.data.children.map((child: { data: RedditPost }) => child.data),
+      after: data.data.after,
+    };
+  } catch (error) {
+    // Re-throw with better context
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to fetch from r/${subreddit}: Unknown error`);
   }
-
-  const data = await response.json();
-
-  return {
-    posts: data.data.children.map((child: { data: RedditPost }) => child.data),
-    after: data.data.after,
-  };
 }
 
 export function filterYouTubePosts(posts: RedditPost[]): RedditPost[] {
