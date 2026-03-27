@@ -2,6 +2,7 @@ import Bottleneck from 'bottleneck';
 import { LRUCache } from 'lru-cache';
 
 const REDDIT_BASE = 'https://www.reddit.com';
+const IS_CLIENT = typeof window !== 'undefined';
 
 function sleep(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
@@ -13,14 +14,13 @@ const cache = new LRUCache({ max: 1000, ttl: 30_000 });
 const inFlight = new Map<string, Promise<any>>();
 
 // Bottleneck limiter: configurable via env vars
-// Reduced defaults for Vercel serverless environment
+// Reduced defaults for client-side environment
 const limiter = new Bottleneck({
-  maxConcurrent: Number(process.env.REDDIT_MAX_CONCURRENCY || 1),
-  minTime: Number(process.env.REDDIT_MIN_TIME_MS || 200),
+  maxConcurrent: Number(process.env.REDDIT_MAX_CONCURRENCY || 2),
+  minTime: Number(process.env.REDDIT_MIN_TIME_MS || 300),
 });
 
 // Pause until timestamp when we need to respect rate limits
-// WARNING: This is per-invocation state. Set to 0 initially to avoid stale pausedUntil from previous invocations
 let pausedUntil = 0;
 
 async function fetchWithRetries(url: string, opts: RequestInit = {}, ttl = 30_000) {

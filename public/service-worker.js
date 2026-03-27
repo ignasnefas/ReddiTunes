@@ -23,6 +23,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Skip non-http(s) requests (chrome-extension, etc)
+  if (!url.protocol.startsWith('http')) return;
+  
   if (event.request.method !== 'GET') return;
 
   // Try cache first, then network, fallback to offline page
