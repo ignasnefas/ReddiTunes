@@ -39,7 +39,7 @@ export function TerminalHeader({ onOpenHelp }: TerminalHeaderProps) {
           {/* APK Download */}
           <button
             onClick={() => {
-              const apkUrl = process.env.NEXT_PUBLIC_APK_URL || 'https://github.com/ignasnefas/ReddiTunes/releases/download/v1.0.1/app-release-unsigned.apk';
+              const apkUrl = process.env.NEXT_PUBLIC_APK_URL || 'https://github.com/ignasnefas/ReddiTunes/releases/download/v1.0.2/app-debug.apk';
               window.open(apkUrl, '_blank');
             }}
             className="px-2 py-1 font-mono text-[10px] rounded border border-terminal-border hover:bg-terminal-hover transition-colors"

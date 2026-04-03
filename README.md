@@ -36,8 +36,10 @@ A retro terminal/ASCII/Winamp-inspired YouTube player that generates playlists d
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
+- Android SDK + NDK, JDK 21
+- `@capacitor/cli` and `@capacitor/android` (installed in project dependencies)
 
 ### Installation
 
@@ -50,6 +52,67 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Android APK build & release
+
+### 1. Update Android app bundle in `next.config` / assets
+
+- Ensure your web build output folder is configured as `out` in `capacitor.config.ts`.
+- Build Next.js output and copy to Capacitor:
+
+```bash
+# Remove any stale build artifacts
+rm -rf .next out
+
+# Build the Next.js app
+npm run build
+
+# Static export target for Capacitor
+npm run export # if used; in this project the build script hides API routes and builds
+```
+
+### 2. Build and run Android via Capacitor
+
+```bash
+# Sync Capacitor native project
+npm run cap:sync
+npm run cap:open # optional IDE launch for manual work
+
+# Build debug APK (recommended for local testing)
+node scripts/build-android.mjs
+
+# Or build release APK from android dir
+cd android
+./gradlew clean assembleRelease
+```
+
+### 3. Sign release APK (required for installing on device/play store)
+
+```bash
+# Sign and align release APK
+jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore ~/my-release-key.keystore android/app/build/outputs/apk/release/app-release-unsigned.apk alias_name
+
+# Align
+zipalign -v -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk android/app/build/outputs/apk/release/app-release.apk
+
+# Verify
+apksigner verify --print-certs android/app/build/outputs/apk/release/app-release.apk
+```
+
+### 4. Create GitHub release (no direct commit of binary)
+
+```bash
+gh release create v1.0.2 "android/app/build/outputs/apk/release/app-release.apk" --title "v1.0.2" --notes "Release with fixed foreground service permission"
+```
+
+### 5. Optional environment variable override
+
+- The app uses `NEXT_PUBLIC_APK_URL` for the APK download button in UI.
+- If you want to point to a specific release artifact:
+
+```bash
+export NEXT_PUBLIC_APK_URL="https://github.com/ignasnefas/ReddiTunes/releases/download/v1.0.2/app-debug.apk"
+```
 
 ## Keyboard Shortcuts
 
