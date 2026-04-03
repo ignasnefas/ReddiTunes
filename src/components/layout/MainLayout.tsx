@@ -34,7 +34,7 @@ export function MainLayout() {
 
   return (
     <KeyboardShortcutsProvider>
-      <div className="h-[100svh] flex flex-col overflow-hidden bg-terminal-bg pt-[max(env(safe-area-inset-top),0.5rem)]">
+      <div suppressHydrationWarning className="h-[100svh] flex flex-col overflow-hidden bg-terminal-bg pt-[max(env(safe-area-inset-top),0.5rem)]">
         <TerminalHeader onOpenHelp={helpModal.open} />
 
         {/* Desktop Layout (lg+) */}

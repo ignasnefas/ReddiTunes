@@ -61,11 +61,12 @@ export const usePlaylistStore = create<PlaylistState>()(
       setActivePlaylist: (playlist) => set({ activePlaylist: playlist }),
 
       generatePlaylist: async (genre, sort, time) => {
-        const sortOption = sort || get().sortOption;
-        const timeFilter = time || get().timeFilter;
-        
+        // Force default behavior: always use hot posts for genre playlists.
+        const sortOption = 'hot';
+        const timeFilter = 'week';
+
         set({ isLoading: true, error: null });
-        
+
         try {
           // Fetch a smaller initial set instead of 50
           const tracks = await fetchPlaylistFromSubreddit(

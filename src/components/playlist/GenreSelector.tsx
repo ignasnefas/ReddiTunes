@@ -1,61 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GENRES, SORT_OPTIONS, TIME_FILTERS } from '@/constants/genres';
+import { GENRES } from '@/constants/genres';
 import { usePlaylistStore } from '@/stores';
-import { Genre, SortOption, TimeFilter } from '@/types';
+import { Genre } from '@/types';
 import { TerminalWindow } from '@/components/terminal';
 import { Button, Loading } from '@/components/ui';
 import { usePlayerStore } from '@/stores';
-import { Flame, Clock, Trophy, TrendingUp, Sun, Calendar, Infinity } from 'lucide-react';
+import { Flame } from 'lucide-react';
 
 export function GenreSelector() {
   const {
     generatePlaylist,
     isLoading,
     error,
-    sortOption,
-    timeFilter,
-    setSortOption,
-    setTimeFilter,
-    activePlaylist,
   } = usePlaylistStore();
 
   const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
 
   const { setIsPlaying } = usePlayerStore();
 
-  const getSortIcon = (sortValue: string) => {
-    switch (sortValue) {
-      case 'hot':
-        return <Flame className="w-3 h-3" />;
-      case 'new':
-        return <Clock className="w-3 h-3" />;
-      case 'top':
-        return <Trophy className="w-3 h-3" />;
-      case 'rising':
-        return <TrendingUp className="w-3 h-3" />;
-      default:
-        return null;
-    }
-  };
-
-  const getTimeFilterIcon = (timeValue: string) => {
-    switch (timeValue) {
-      case 'hour':
-        return <Clock className="w-3 h-3" />;
-      case 'day':
-        return <Sun className="w-3 h-3" />;
-      case 'week':
-      case 'month':
-      case 'year':
-        return <Calendar className="w-3 h-3" />;
-      case 'all':
-        return <Infinity className="w-3 h-3" />;
-      default:
-        return null;
-    }
-  };
 
   // Previously auto-generated the default genre on mount. Disabled to prevent automatic
   // loading when the page opens — users should select a genre to generate a playlist manually.
@@ -118,42 +82,6 @@ export function GenreSelector() {
           <span className="sr-only">Select subreddit</span>
         </div>
 
-        {/* Sort options */}
-        <div className="border border-terminal-border p-2 space-y-2">
-          <div>
-            <label className="font-mono text-[10px] text-terminal-muted block mb-1">Sort:</label>
-            <div className="flex flex-wrap gap-1">
-              {SORT_OPTIONS.map((option) => (
-                <Button
-                  key={option.value}
-                  size="sm"
-                  variant={sortOption === option.value ? 'primary' : 'default'}
-                  onClick={() => setSortOption(option.value as SortOption)}
-                >
-                  {getSortIcon(option.value)} {option.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-          {sortOption === 'top' && (
-            <div>
-              <label className="font-mono text-[10px] text-terminal-muted block mb-1">Time:</label>
-              <div className="flex flex-wrap gap-1">
-                {TIME_FILTERS.map((filter) => (
-                  <Button
-                    key={filter.value}
-                    size="sm"
-                    variant={timeFilter === filter.value ? 'primary' : 'default'}
-                    onClick={() => setTimeFilter(filter.value as TimeFilter)}
-                  >
-                    {getTimeFilterIcon(filter.value)} {filter.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-        </div>
 
         {/* Loading */}
         {isLoading && (

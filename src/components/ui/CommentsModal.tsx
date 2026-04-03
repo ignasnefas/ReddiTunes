@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { RedditComment } from '@/types';
+import { RedditComment, RedditPost } from '@/types';
 import { fetchComments } from '@/lib/reddit';
 import { X, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react';
 
@@ -13,6 +13,7 @@ interface CommentsModalProps {
 }
 
 export function CommentsModal({ permalink, title, isOpen, onClose }: CommentsModalProps) {
+  const [post, setPost] = useState<RedditPost | null>(null);
   const [comments, setComments] = useState<RedditComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +29,8 @@ export function CommentsModal({ permalink, title, isOpen, onClose }: CommentsMod
     setLoading(true);
     setError(null);
     try {
-      const fetchedComments = await fetchComments(permalink);
+      const { post: fetchedPost, comments: fetchedComments } = await fetchComments(permalink);
+      setPost(fetchedPost);
       setComments(fetchedComments);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load comments');
@@ -108,6 +110,13 @@ export function CommentsModal({ permalink, title, isOpen, onClose }: CommentsMod
           
           {error && (
             <div className="text-red-400 text-center py-8">{error}</div>
+          )}
+
+          {!loading && !error && post && post.selftext && (
+            <div className="mb-4 p-3 border border-terminal-border rounded bg-terminal-surface">
+              <div className="text-terminal-accent text-[10px] font-mono mb-1">Original post by {post.author}</div>
+              <div className="text-terminal-text text-[11px] font-mono whitespace-pre-wrap">{post.selftext}</div>
+            </div>
           )}
           
           {!loading && !error && comments.length === 0 && (

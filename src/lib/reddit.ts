@@ -164,7 +164,7 @@ export async function fetchPlaylistFromSubreddit(
   return tracks;
 }
 
-export async function fetchComments(permalink: string): Promise<RedditComment[]> {
+export async function fetchComments(permalink: string): Promise<{ post: RedditPost | null; comments: RedditComment[] }> {
   // Extract subreddit and post ID from permalink
   // permalink format: /r/subreddit/comments/post_id/title/
   const match = permalink.match(/\/r\/([^\/]+)\/comments\/([^\/]+)\//);
@@ -176,12 +176,29 @@ export async function fetchComments(permalink: string): Promise<RedditComment[]>
   try {
     const data = await fetchRedditApi(apiUrl);
     // Reddit API returns [post_data, comments_data]
+    const postData = data[0]?.data?.children?.[0]?.data;
     const commentsData = data[1]?.data?.children || [];
 
-    return commentsData
+    const post: RedditPost | null = postData
+      ? {
+          id: postData.id,
+          title: postData.title,
+          url: postData.url,
+          permalink: postData.permalink,
+          score: postData.score,
+          created_utc: postData.created_utc,
+          author: postData.author,
+          num_comments: postData.num_comments,
+          selftext: postData.selftext || '',
+        }
+      : null;
+
+    const comments = commentsData
       .filter((child: any) => child.kind === 't1') // Only comments, not more objects
       .filter((child: any) => !BOT_USERNAMES.has(child.data.author)) // Filter out bot comments
       .map((child: any) => parseComment(child.data));
+
+    return { post, comments };
   } catch (error) {
     console.error('Error fetching comments:', error);
     throw error;

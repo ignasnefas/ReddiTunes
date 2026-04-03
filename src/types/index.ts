@@ -40,6 +40,7 @@ export interface RedditPost {
   created_utc: number;
   author: string;
   num_comments: number;
+  selftext?: string;
 }
 
 export interface RedditComment {

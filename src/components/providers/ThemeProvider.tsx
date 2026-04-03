@@ -20,7 +20,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Register a simple service worker in production for offline support
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof navigator === 'undefined') return;
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       navigator.serviceWorker
         .register('/service-worker.js')
