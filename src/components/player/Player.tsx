@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { usePlayerStore, usePlaylistStore } from '@/stores';
+import { GENRES } from '@/constants/genres';
 import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES, YOUTUBE_ERROR_CODES } from '@/lib/youtube';
 import { TerminalWindow } from '@/components/terminal';
 import { Loading } from '@/components/ui';
@@ -13,9 +14,20 @@ const CommentsModal = dynamic(() => import('@/components/ui').then((m) => m.Comm
 
 function PlayerComponent({ compact = false }: { compact?: boolean }) {
   const { currentTrack, isLoading, setIsLoading, repeatMode, isPlaying, setIsPlaying } = usePlayerStore();
-  const { nextTrack } = usePlaylistStore();
+  const { nextTrack, generatePlaylist, activePlaylist } = usePlaylistStore();
   const playerRef = useRef<YouTubePlayer | null>(null);
   const currentTrackIdRef = useRef<string | null>(null);
+
+  const genreLabel = activePlaylist?.genre
+    ? GENRES.find((genre) => genre.id === activePlaylist.genre)?.name ?? activePlaylist.genre
+    : null;
+
+  const handleRandomGenre = useCallback(() => {
+    if (!GENRES || GENRES.length === 0) return;
+    const randomGenre = GENRES[Math.floor(Math.random() * GENRES.length)];
+    generatePlaylist(randomGenre);
+    setIsPlaying(true);
+  }, [generatePlaylist, setIsPlaying]);
   const [showComments, setShowComments] = useState(false);
 
   const openCurrentTrackComments = useCallback(() => {
@@ -279,7 +291,11 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
   return (
     <>
       <TerminalWindow 
-        title={currentTrack ? `♪ ${currentTrack.title}` : '♪ NO TRACK'}
+        title={
+          currentTrack
+            ? `♪ ${genreLabel ? `${genreLabel} · ` : ''}${currentTrack.title}`
+            : '♪ NO TRACK'
+        }
         className="h-full"
         headerActions={
           currentTrack?.redditUrl ? (
@@ -305,6 +321,11 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
         <div className="player-container">
           {currentTrack ? (
             <>
+              {genreLabel && (
+                <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded bg-black/70 text-terminal-accent font-mono text-[10px] uppercase tracking-wider">
+                  {genreLabel}
+                </div>
+              )}
               <div>
                 <YouTube
                   videoId={currentTrack.youtubeId}
@@ -319,14 +340,24 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
             </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-terminal-bg-secondary">
-              <div className="text-center">
-              <div className="font-mono text-terminal-muted text-3xl mb-2">▶</div>
-              <p className="font-mono text-xs text-terminal-muted">
-                Select a genre to start
-              </p>
+              <div className="text-center space-y-2">
+                <div className="font-mono text-terminal-muted text-3xl mb-2">▶</div>
+                <p className="font-mono text-xs text-terminal-muted">
+                  Select a genre to start
+                </p>
+                <p className="font-mono text-[10px] text-terminal-muted">
+                  or play a{' '}
+                  <button
+                    onClick={handleRandomGenre}
+                    disabled={isLoading}
+                    className="text-terminal-accent font-mono text-[10px] border border-terminal-border px-2 py-1 rounded hover:border-terminal-accent disabled:opacity-50"
+                  >
+                    random genre
+                  </button>
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </TerminalWindow>
 

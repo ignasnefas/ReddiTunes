@@ -87,7 +87,7 @@ export function MainLayout() {
 
         {/* Mobile Layout */}
         <main className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 p-3 overflow-auto min-h-0">
+          <div className="flex-1 p-3 overflow-hidden min-h-0">
             <div className={`flex flex-col gap-3 h-full`}>
               {/* Player at the top on mobile, visible across tabs */}
               <div className="max-h-[220px] min-h-0">

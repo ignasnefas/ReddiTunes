@@ -37,6 +37,17 @@ export function GenreSelector() {
     return acc;
   }, {} as Record<string, Genre[]>);
 
+  const normalizeCategorySize = (items: Genre[]) => {
+    if (items.length >= 6) return items.slice(0, 6);
+    if (items.length >= 4) return items.slice(0, 4);
+    if (items.length >= 2) return items.slice(0, 2);
+    return items; // keep single-item categories if they only have one
+  };
+
+  const normalizedGrouped = Object.fromEntries(
+    Object.entries(grouped).map(([key, items]) => [key, normalizeCategorySize(items)])
+  ) as Record<string, Genre[]>;
+
   const categoryOrder = [
     'Electronic',
     'Dance & Club',
@@ -101,9 +112,9 @@ export function GenreSelector() {
         <div className="space-y-2">
           {orderedCategories.map((cat) => (
             <div key={cat}>
-              <div className="font-mono text-[10px] text-terminal-muted uppercase mb-1">{cat}</div>
+              <div className="font-mono text-xs text-terminal-muted uppercase mb-1">{cat}</div>
               <div className="grid grid-cols-2 gap-1.5 mb-1">
-                {grouped[cat].map((genre) => (
+                {(normalizedGrouped[cat] || []).map((genre) => (
                   <button
                     key={genre.id}
                     onClick={() => handleGenreSelect(genre)}

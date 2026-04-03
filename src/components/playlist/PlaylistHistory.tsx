@@ -18,13 +18,16 @@ export function PlaylistHistory() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [listHeight, setListHeight] = useState(200);
 
+  const updateListHeight = () => {
+    if (containerRef.current) {
+      const newHeight = containerRef.current.clientHeight;
+      setListHeight(Math.max(newHeight, 100));
+    }
+  };
+
   useEffect(() => {
-    const ro = new ResizeObserver(() => {
-      if (containerRef.current) {
-        const newHeight = containerRef.current.clientHeight - 16; // subtract padding
-        setListHeight(Math.max(newHeight, 100));
-      }
-    });
+    updateListHeight();
+    const ro = new ResizeObserver(updateListHeight);
     if (containerRef.current) ro.observe(containerRef.current);
     return () => ro.disconnect();
   }, []);
@@ -93,9 +96,10 @@ export function PlaylistHistory() {
         </div>
       )
     }>
-      <div ref={containerRef} className="p-2 space-y-1">
+      <div ref={containerRef} className="h-full p-2 space-y-1 overflow-hidden">
         <VirtualList
-          height={listHeight}
+          className="h-full"
+          height={Math.max(listHeight, 100)}
           itemCount={entries.length}
           itemSize={56}
           width="100%"
