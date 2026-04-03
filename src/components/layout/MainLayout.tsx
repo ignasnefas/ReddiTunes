@@ -30,7 +30,7 @@ export function MainLayout() {
     { id: 'favorites', icon: <Star className="w-4 h-4" />, label: 'Favorites' },
   ];
 
-  const activeLayout: 'desktop' | 'tablet' | 'mobile' = 'mobile';
+  const [activeLayout] = useState<'desktop' | 'tablet' | 'mobile'>('mobile');
 
   return (
     <KeyboardShortcutsProvider>

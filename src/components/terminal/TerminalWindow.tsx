@@ -12,6 +12,7 @@ interface TerminalWindowProps {
   onMinimize?: () => void;
   onMaximize?: () => void;
   tabIndex?: number;
+  suppressHydrationWarning?: boolean;
 }
 
 export const TerminalWindow = forwardRef<HTMLDivElement, TerminalWindowProps>(({
@@ -23,11 +24,17 @@ export const TerminalWindow = forwardRef<HTMLDivElement, TerminalWindowProps>(({
   onMinimize,
   onMaximize,
   tabIndex,
+  suppressHydrationWarning,
 }, ref) => {
   const showHeader = Boolean(title || onClose || onMinimize || onMaximize || headerActions);
 
   return (
-    <div ref={ref} tabIndex={tabIndex} className={`border border-terminal-border bg-terminal-bg flex flex-col focus:outline-none focus:ring-1 focus:ring-terminal-accent ${className}`}>
+    <div
+      ref={ref}
+      tabIndex={tabIndex}
+      suppressHydrationWarning={suppressHydrationWarning}
+      className={`border border-terminal-border bg-terminal-bg flex flex-col focus:outline-none focus:ring-1 focus:ring-terminal-accent ${className}`}
+    >
       {showHeader && (
         <div className="flex items-center justify-between px-2 py-1 border-b border-terminal-border bg-terminal-header min-h-[28px] relative z-10">
           <div className="flex items-center gap-2 flex-1 min-w-0">

@@ -22,11 +22,11 @@ export function TerminalHeader({ onOpenHelp }: TerminalHeaderProps) {
   }, []);
 
   return (
-    <header className="flex-shrink-0 border-b border-terminal-border bg-terminal-header px-3 py-1.5">
+    <header suppressHydrationWarning className="flex-shrink-0 border-b border-terminal-border bg-terminal-header px-3 py-1.5">
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-1.5">
-          <Radio className="w-4 h-4 text-terminal-accent" />
+          <Radio className="w-4 h-4 text-terminal-accent" suppressHydrationWarning />
           <h1 className="font-mono text-sm text-terminal-accent font-bold">
             ReddiTunes
           </h1>
@@ -42,7 +42,7 @@ export function TerminalHeader({ onOpenHelp }: TerminalHeaderProps) {
             className="p-2 rounded border border-terminal-border hover:bg-terminal-hover transition-colors"
             title="Visit nefas.tv"
           >
-            <Globe className="w-4 h-4 text-terminal-accent" />
+            <Globe className="w-4 h-4 text-terminal-accent" suppressHydrationWarning />
           </button>
 
           {/* Help (opens modal) */}
@@ -51,7 +51,7 @@ export function TerminalHeader({ onOpenHelp }: TerminalHeaderProps) {
             className="p-2 rounded border border-terminal-border hover:bg-terminal-hover transition-colors"
             title="Help"
           >
-            <HelpCircle className="w-4 h-4 text-terminal-accent" />
+            <HelpCircle className="w-4 h-4 text-terminal-accent" suppressHydrationWarning />
           </button>
 
           <ThemeToggle />

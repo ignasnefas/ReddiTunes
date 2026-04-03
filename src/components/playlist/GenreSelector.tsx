@@ -127,7 +127,11 @@ export function GenreSelector() {
                   >
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <span className="text-sm">{genre.icon}</span>
-                      <span className="font-mono text-xs font-bold" style={{ color: genre.color }}>
+                      <span
+                        suppressHydrationWarning
+                        className="font-mono text-xs font-bold"
+                        style={{ color: genre.color }}
+                      >
                         {genre.name}
                       </span>
                     </div>

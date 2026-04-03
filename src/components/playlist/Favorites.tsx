@@ -36,6 +36,7 @@ export function Favorites() {
 
   return (
     <TerminalWindow
+      suppressHydrationWarning
       ref={containerRef}
       tabIndex={0}
       title={`[FAVORITES] ${favorites.length} tracks`}
@@ -57,7 +58,10 @@ export function Favorites() {
       <div className="flex-1 overflow-y-auto">
         {favorites.length === 0 ? (
           <div className="p-4 text-center">
-            <ListMusic className="w-8 h-8 mx-auto mb-2 text-terminal-muted" />
+            <ListMusic
+              suppressHydrationWarning
+              className="w-8 h-8 mx-auto mb-2 text-terminal-muted"
+            />
             <p className="font-mono text-xs text-terminal-muted">No favorites yet</p>
           </div>
         ) : (
