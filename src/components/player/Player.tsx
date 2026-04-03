@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { usePlayerStore, usePlaylistStore, useFavoritesStore } from '@/stores';
+import { setBackgroundAudio } from '@/lib/backgroundAudio';
 import { GENRES } from '@/constants/genres';
 import { PLAY_ICON } from '@/constants/ascii';
 import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES, YOUTUBE_ERROR_CODES } from '@/lib/youtube';
@@ -171,6 +172,11 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
         // ignore if mediaSession not fully supported
       }
     }
+  }, [isPlaying]);
+
+  // Start / stop the Android background audio service when playback state changes.
+  useEffect(() => {
+    setBackgroundAudio(isPlaying);
   }, [isPlaying]);
 
   const onStateChange = useCallback((event: YouTubeEvent) => {
