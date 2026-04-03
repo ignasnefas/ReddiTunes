@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { usePlayerStore, usePlaylistStore, useFavoritesStore } from '@/stores';
 import { setBackgroundAudio } from '@/lib/backgroundAudio';
+import { backgroundAudioManager } from '@/lib/backgroundAudioManager';
+import { Capacitor } from '@capacitor/core';
 import { GENRES } from '@/constants/genres';
 import { PLAY_ICON } from '@/constants/ascii';
 import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES, YOUTUBE_ERROR_CODES } from '@/lib/youtube';
@@ -125,12 +127,48 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
       }
     }
 
-    function onVisibilityChange() {
+    async function onVisibilityChange() {
       if (document.visibilityState === 'hidden') {
+        if (isPlaying && currentTrack && Capacitor.isNativePlatform()) {
+          // Try to start native background audio on Android
+          try {
+            const position = playerRef.current?.getCurrentTime?.() || 0;
+            const success = await backgroundAudioManager.startBackgroundAudio(
+              currentTrack.youtubeId,
+              position * 1000 // Convert seconds to ms
+            );
+            if (success) {
+              console.log('[Player] Native background audio started');
+              // Don't use bgResume if native player is active
+              return;
+            }
+          } catch (error) {
+            console.warn('[Player] Failed to start native background audio:', error);
+          }
+        }
+        
         if (isPlaying) startBgResume();
       } else {
         stopBgResume();
-        if (isPlaying && playerRef.current) {
+        
+        // Stop native background audio when app comes to foreground
+        if (backgroundAudioManager.isInBackgroundAudioMode()) {
+          try {
+            const bgPosition = await backgroundAudioManager.getBackgroundAudioPosition();
+            await backgroundAudioManager.stopBackgroundAudio();
+            
+            // Resume YouTube player at the position we were at in native player
+            if (playerRef.current && currentTrack) {
+              playerRef.current.loadVideoById(currentTrack.youtubeId);
+              playerRef.current.seekTo(bgPosition / 1000); // Convert ms to seconds
+              if (isPlaying) {
+                playerRef.current.playVideo();
+              }
+            }
+          } catch (error) {
+            console.warn('[Player] Error switching from native player:', error);
+          }
+        } else if (isPlaying && playerRef.current) {
           try {
             playerRef.current.playVideo();
           } catch (e) {
@@ -150,7 +188,7 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
       document.removeEventListener('visibilitychange', onVisibilityChange);
       stopBgResume();
     };
-  }, [isPlaying]);
+  }, [isPlaying, currentTrack]);
 
   // Integrate Media Session (helps some platforms keep playback alive and provides controls)
   useEffect(() => {
