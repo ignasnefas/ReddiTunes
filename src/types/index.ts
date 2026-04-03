@@ -5,6 +5,7 @@ export interface Track {
   youtubeId: string;
   title: string;
   artist?: string;
+  genre?: string;
   duration?: number;
   redditUrl?: string;
   thumbnail?: string;

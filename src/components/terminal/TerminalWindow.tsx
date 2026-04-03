@@ -4,7 +4,7 @@ import { forwardRef } from 'react';
 import { WINDOW_CONTROLS } from '@/constants/ascii';
 
 interface TerminalWindowProps {
-  title: string;
+  title?: string;
   children: React.ReactNode;
   className?: string;
   headerActions?: React.ReactNode;
@@ -24,13 +24,15 @@ export const TerminalWindow = forwardRef<HTMLDivElement, TerminalWindowProps>(({
   onMaximize,
   tabIndex,
 }, ref) => {
+  const showHeader = Boolean(title || onClose || onMinimize || onMaximize || headerActions);
+
   return (
     <div ref={ref} tabIndex={tabIndex} className={`border border-terminal-border bg-terminal-bg flex flex-col focus:outline-none focus:ring-1 focus:ring-terminal-accent ${className}`}>
-      {/* Title bar */}
-      <div className="flex items-center justify-between px-2 py-1 border-b border-terminal-border bg-terminal-header min-h-[28px] relative z-10">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          {(onClose || onMinimize || onMaximize) && (
-            <div className="flex items-center gap-1 flex-shrink-0">
+      {showHeader && (
+        <div className="flex items-center justify-between px-2 py-1 border-b border-terminal-border bg-terminal-header min-h-[28px] relative z-10">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {(onClose || onMinimize || onMaximize) && (
+              <div className="flex items-center gap-1 flex-shrink-0">
               {onClose && (
                 <button
                   onClick={onClose}
@@ -68,6 +70,7 @@ export const TerminalWindow = forwardRef<HTMLDivElement, TerminalWindowProps>(({
           </div>
         )}
       </div>
+      )}
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {children}

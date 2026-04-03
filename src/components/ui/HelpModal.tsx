@@ -27,6 +27,14 @@ const shortcuts = [
 ];
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
+  const [hotkeysOpen, setHotkeysOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setHotkeysOpen(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -44,34 +52,44 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           }
         >
           <div className="p-4 max-h-[70vh] overflow-y-auto">
-            <div className="flex items-center gap-2 text-terminal-accent mb-4">
-              <Keyboard className="w-5 h-5" />
-              <span className="font-mono text-sm">Keyboard Controls</span>
-            </div>
-
-            <div className="space-y-2">
-              {shortcuts.map((shortcut) => (
-                <div
-                  key={shortcut.key}
-                  className="flex items-center justify-between py-1 border-b border-terminal-border/50"
-                >
-                  <kbd className="px-2 py-1 bg-terminal-bg-secondary border border-terminal-border font-mono text-xs text-terminal-accent">
-                    {shortcut.key}
-                  </kbd>
-                  <span className="font-mono text-xs text-terminal-text">
-                    {shortcut.description}
-                  </span>
-                </div>
-              ))}
-            </div>
-
             <div className="mt-6 pt-4 border-t border-terminal-border">
               <h3 className="font-mono text-sm text-terminal-accent mb-2">About ReddiTunes</h3>
               <p className="font-mono text-xs text-terminal-muted leading-relaxed">
                 ReddiTunes is a terminal-inspired YouTube player that generates playlists
-                from music subreddits. Select a genre to fetch YouTube links from
-                the corresponding subreddit and start listening.
+                from music subreddits. It provides a more curated, community-driven way
+                to find new music than algorithmic platforms like Spotify, by surfacing
+                tracks that real Reddit communities are sharing.
               </p>
+            </div>
+
+            <div className="mt-4">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs text-terminal-accent">Keyboard Controls</span>
+                <button
+                  type="button"
+                  onClick={() => setHotkeysOpen((value) => !value)}
+                  className="text-terminal-muted hover:text-terminal-text text-xs font-mono"
+                >
+                  {hotkeysOpen ? 'Hide hotkeys' : 'Show hotkeys'}
+                </button>
+              </div>
+              {hotkeysOpen && (
+                <div className="mt-2 space-y-2">
+                  {shortcuts.map((shortcut) => (
+                    <div
+                      key={shortcut.key}
+                      className="flex items-center justify-between py-1 border-b border-terminal-border/50"
+                    >
+                      <kbd className="px-2 py-1 bg-terminal-bg-secondary border border-terminal-border font-mono text-xs text-terminal-accent">
+                        {shortcut.key}
+                      </kbd>
+                      <span className="font-mono text-xs text-terminal-text">
+                        {shortcut.description}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="mt-4">

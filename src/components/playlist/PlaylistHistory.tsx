@@ -46,7 +46,11 @@ export function PlaylistHistory() {
           <img src={`https://img.youtube.com/vi/${entry.track.youtubeId}/mqdefault.jpg`} alt="thumb" className="w-6 h-4 object-cover rounded" />
           <div className="flex-1 min-w-0">
             <div className="font-mono text-[11px] text-terminal-text truncate">{entry.track.title}</div>
-            <div className="font-mono text-[10px] text-terminal-muted">{entry.track.artist || (entry.track.redditUrl ? 'reddit' : 'YouTube')} • {getTimeAgo(entry.playedAt)}</div>
+            <div className="font-mono text-[10px] text-terminal-muted">
+            {entry.track.artist || (entry.track.redditUrl ? 'reddit' : 'YouTube')}
+            {entry.track.genre ? ` • ${entry.track.genre}` : ''}
+            {' • '}{getTimeAgo(entry.playedAt)}
+          </div>
           </div>
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
             <button

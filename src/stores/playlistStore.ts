@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Track, Playlist, Genre, SortOption, TimeFilter } from '@/types';
+import { GENRES } from '@/constants/genres';
 import { fetchPlaylistFromSubreddit } from '@/lib/reddit';
 import { generateId, shuffleArray } from '@/lib/utils';
 
@@ -75,8 +76,11 @@ export const usePlaylistStore = create<PlaylistState>()(
             timeFilter,
             20
           );
+
+          const genreLabel = genre.name || genre.id;
+          const tracksWithGenre = tracks.map((track) => ({ ...track, genre: genreLabel }));
           
-          if (tracks.length === 0) {
+          if (tracksWithGenre.length === 0) {
             throw new Error(`No YouTube tracks found in r/${genre.subreddit}`);
           }
           
@@ -93,8 +97,8 @@ export const usePlaylistStore = create<PlaylistState>()(
           set((state) => ({
             playlists: [newPlaylist, ...state.playlists.slice(0, 9)], // Keep last 10 playlists
             activePlaylist: newPlaylist,
-            queue: tracks,
-            originalQueue: tracks,
+            queue: tracksWithGenre,
+            originalQueue: tracksWithGenre,
             queueIndex: 0,
             isLoading: false,
           }));
@@ -128,17 +132,20 @@ export const usePlaylistStore = create<PlaylistState>()(
             return;
           }
 
+          const playlistGenreLabel = GENRES.find((g) => g.id === playlist.genre)?.name || playlist.genre;
+          const moreWithGenre = more.map((track) => ({ ...track, genre: playlistGenreLabel }));
+
           const updatedPlaylist = {
             ...playlist,
-            tracks: [...playlist.tracks, ...more],
+            tracks: [...playlist.tracks, ...moreWithGenre],
             lastUpdated: Date.now(),
           };
 
           set((s) => ({
             playlists: s.playlists.map(p => p.id === playlist.id ? updatedPlaylist : p),
             activePlaylist: updatedPlaylist,
-            queue: [...s.queue, ...more],
-            originalQueue: [...s.originalQueue, ...more],
+            queue: [...s.queue, ...moreWithGenre],
+            originalQueue: [...s.originalQueue, ...moreWithGenre],
             isLoading: false,
           }));
         } catch (error) {
@@ -147,10 +154,18 @@ export const usePlaylistStore = create<PlaylistState>()(
       },
 
       addTrackToQueue: (track) =>
-        set((state) => ({
-          queue: [...state.queue, track],
-          originalQueue: [...state.originalQueue, track],
-        })),
+        set((state) => {
+          const activePlaylist = state.activePlaylist;
+          const playlistGenreLabel = activePlaylist
+            ? GENRES.find((g) => g.id === activePlaylist.genre)?.name || activePlaylist.genre
+            : undefined;
+          const normalizedTrack = track.genre ? track : { ...track, genre: playlistGenreLabel };
+
+          return {
+            queue: [...state.queue, normalizedTrack],
+            originalQueue: [...state.originalQueue, normalizedTrack],
+          };
+        }),
 
       removeTrackFromQueue: (trackId) =>
         set((state) => {
@@ -241,10 +256,15 @@ export const usePlaylistStore = create<PlaylistState>()(
         }),
 
       loadPlaylistToQueue: (playlist) => {
+        const genreLabel = GENRES.find((g) => g.id === playlist.genre)?.name || playlist.genre;
+        const tracksWithGenre = playlist.tracks.map((track) =>
+          track.genre ? track : { ...track, genre: genreLabel }
+        );
+
         set({
           activePlaylist: playlist,
-          queue: playlist.tracks,
-          originalQueue: playlist.tracks,
+          queue: tracksWithGenre,
+          originalQueue: tracksWithGenre,
           queueIndex: 0,
           isShuffled: false,
         });

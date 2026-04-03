@@ -86,7 +86,7 @@ export function GenreSelector() {
   };
 
   return (
-    <TerminalWindow title="[GENRES]" className="h-full">
+    <TerminalWindow className="h-full">
       <div className="p-2 space-y-2 h-full overflow-y-auto">
         {/* Header */}
         <div className="flex items-center gap-2 text-terminal-accent">
