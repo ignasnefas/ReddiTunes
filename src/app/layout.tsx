@@ -9,12 +9,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReddiTunes - Tune",
+  title: "ReddiTunes - What's Reddit listening to?",
   description: "A terminal-inspired YouTube player with Reddit playlist generation",
   keywords: ["youtube", "player", "terminal", "reddit", "music", "vaporwave", "synthwave"],
   authors: [{ name: "ReddiTunes" }],
   openGraph: {
-    title: "ReddiTunes - Terminal YouTube Player",
+    title: "ReddiTunes - What's Reddit listening to?",
     description: "A terminal-inspired YouTube player with Reddit playlist generation",
     type: "website",
   },
