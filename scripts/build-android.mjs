@@ -29,6 +29,11 @@ if (existsSync(apiDir)) {
 }
 
 try {
+  const nextDir = resolve(root, '.next');
+  if (existsSync(nextDir)) {
+    console.log('Deleting stale .next build output...');
+    rmSync(nextDir, { recursive: true, force: true });
+  }
   run('cross-env BUILD_TARGET=android next build');
 } finally {
   // Always restore API routes

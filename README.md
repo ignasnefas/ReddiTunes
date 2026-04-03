@@ -36,7 +36,7 @@ A retro terminal/ASCII/Winamp-inspired YouTube player that generates playlists d
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 18+ 
 - npm or yarn
 
 ### Installation
@@ -48,18 +48,6 @@ npm install
 # Start development server
 npm run dev
 ```
-
-### GitHub Releases automation
-
-- Create a new git tag:
-  ```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-- This triggers `.github/workflows/android-release.yml` to build and publish the release with `app-release-unsigned.apk`.
-- Set `NEXT_PUBLIC_APK_DOWNLOAD_URL` in your web deployment to:
-  `https://github.com/<user>/<repo>/releases/latest/download/reddituunes-app-release-unsigned.apk`
-
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
@@ -145,20 +133,6 @@ vercel
 ```
 
 Or connect your GitHub repository to Vercel for automatic deployments.
-
-### GitHub Releases APK
-
-1. Build Android release APK:
-   ```bash
-   cd android
-   ./gradlew assembleRelease
-   ```
-2. Create a GitHub release on the repository, and upload the generated APK from:
-   `android/app/build/outputs/apk/release/app-release.apk`.
-3. To use the in-app download button, update the URL in `src/components/terminal/TerminalHeader.tsx`:
-   `https://github.com/YOUR_USERNAME/YOUR_REPO/releases/latest/download/reddituunes-app-release.apk`
-
-Once published, users can directly download the APK from the website button that links to the GitHub release asset.
 
 ## License
 

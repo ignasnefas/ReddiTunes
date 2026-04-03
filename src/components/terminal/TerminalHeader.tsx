@@ -2,7 +2,7 @@
 
 import { ThemeToggle } from '@/components/ui';
 import { useEffect, useState } from 'react';
-import { Radio, Globe, HelpCircle, Download } from 'lucide-react';
+import { Radio, Globe, HelpCircle } from 'lucide-react';
 
 interface TerminalHeaderProps {
   onOpenHelp?: () => void;
@@ -10,9 +10,6 @@ interface TerminalHeaderProps {
 
 export function TerminalHeader({ onOpenHelp }: TerminalHeaderProps) {
   const [time, setTime] = useState('');
-  const apkDownloadUrl =
-    process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ||
-    'https://github.com/YOUR_USERNAME/YOUR_REPO/releases/latest/download/reddituunes-app-release.apk';
 
   useEffect(() => {
     const updateTime = () => {
@@ -39,13 +36,16 @@ export function TerminalHeader({ onOpenHelp }: TerminalHeaderProps) {
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] text-terminal-muted hidden sm:block">{time}</span>
 
-          {/* APK Download link on GitHub Releases */}
+          {/* APK Download */}
           <button
-            onClick={() => window.open(apkDownloadUrl, '_blank')}
-            className="p-2 rounded border border-terminal-border hover:bg-terminal-hover transition-colors"
-            title="Download APK from GitHub Releases"
+            onClick={() => {
+              const apkUrl = process.env.NEXT_PUBLIC_APK_URL || 'https://github.com/<your-org>/<your-repo>/releases/latest/download/reddituunes.apk';
+              window.open(apkUrl, '_blank');
+            }}
+            className="px-2 py-1 font-mono text-[10px] rounded border border-terminal-border hover:bg-terminal-hover transition-colors"
+            title="Download APK"
           >
-            <Download className="w-4 h-4 text-terminal-accent" suppressHydrationWarning />
+            APK
           </button>
 
           {/* External site */}

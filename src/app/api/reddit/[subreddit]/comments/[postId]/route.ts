@@ -4,6 +4,9 @@ import { fetchCommentsJson } from '@/lib/redditClient';
 // Set Vercel timeout limits
 export const maxDuration = 30;
 
+// Next.js static export mode support
+export const dynamic = 'force-static';
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ subreddit: string; postId: string }> }
