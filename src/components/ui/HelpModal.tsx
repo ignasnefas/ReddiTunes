@@ -41,7 +41,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div className="w-full max-w-md">
         <TerminalWindow
-          title="[HELP] Keyboard Shortcuts"
+          title=""
           headerActions={
             <button
               onClick={onClose}
@@ -52,7 +52,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           }
         >
           <div className="p-4 max-h-[70vh] overflow-y-auto">
-            <div className="mt-6 pt-4 border-t border-terminal-border">
+            <div>
               <h3 className="font-mono text-sm text-terminal-accent mb-2">About ReddiTunes</h3>
               <p className="font-mono text-xs text-terminal-muted leading-relaxed">
                 ReddiTunes is a terminal-inspired YouTube player that generates playlists

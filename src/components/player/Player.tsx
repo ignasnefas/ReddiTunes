@@ -3,18 +3,23 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
-import { usePlayerStore, usePlaylistStore } from '@/stores';
+import { usePlayerStore, usePlaylistStore, useFavoritesStore } from '@/stores';
 import { GENRES } from '@/constants/genres';
+import { PLAY_ICON } from '@/constants/ascii';
 import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES, YOUTUBE_ERROR_CODES } from '@/lib/youtube';
 import { TerminalWindow } from '@/components/terminal';
 import { Loading } from '@/components/ui';
-import { ExternalLink, MessageCircle } from 'lucide-react';
+import { ExternalLink, MessageCircle, Star } from 'lucide-react';
 
 const CommentsModal = dynamic(() => import('@/components/ui').then((m) => m.CommentsModal), { ssr: false });
 
 function PlayerComponent({ compact = false }: { compact?: boolean }) {
   const { currentTrack, isLoading, setIsLoading, repeatMode, isPlaying, setIsPlaying } = usePlayerStore();
   const { nextTrack, generatePlaylist, activePlaylist } = usePlaylistStore();
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const isFavorite = useFavoritesStore(
+    (state) => !!currentTrack && state.favorites.some((t) => t.youtubeId === currentTrack.youtubeId)
+  );
   const playerRef = useRef<YouTubePlayer | null>(null);
   const currentTrackIdRef = useRef<string | null>(null);
 
@@ -248,30 +253,44 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
             <div className="min-w-0">
               <div className="font-mono text-[11px] text-terminal-text truncate w-36">{currentTrack.title}</div>
               <div className="font-mono text-[10px] text-terminal-muted truncate w-36">{currentTrack.artist || ''}</div>
-              {currentTrack.redditUrl && (
-                <div className="mt-1 flex gap-1">
+              <div className="mt-1 flex gap-1">
+                {currentTrack?.redditUrl && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(currentTrack.redditUrl, '_blank');
+                      }}
+                      className="p-0.5 text-terminal-muted hover:text-terminal-accent"
+                      title="Open current track Reddit thread"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openCurrentTrackComments();
+                      }}
+                      className="p-0.5 text-terminal-muted hover:text-terminal-accent"
+                      title="View comments for current track"
+                    >
+                      <MessageCircle className="w-3 h-3" />
+                    </button>
+                  </>
+                )}
+                {currentTrack && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.open(currentTrack.redditUrl, '_blank');
+                      toggleFavorite(currentTrack);
                     }}
                     className="p-0.5 text-terminal-muted hover:text-terminal-accent"
-                    title="Open current track Reddit thread"
+                    title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                   >
-                    <ExternalLink className="w-3 h-3" />
+                    <Star className={`w-3 h-3 ${isFavorite ? 'text-yellow-300' : 'text-terminal-muted'}`} fill={isFavorite ? 'currentColor' : 'none'} />
                   </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openCurrentTrackComments();
-                    }}
-                    className="p-0.5 text-terminal-muted hover:text-terminal-accent"
-                    title="View comments for current track"
-                  >
-                    <MessageCircle className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </>
         ) : (
@@ -298,21 +317,32 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
         }
         className="h-full"
         headerActions={
-          currentTrack?.redditUrl ? (
+          currentTrack ? (
             <>
+              {currentTrack.redditUrl && (
+                <>
+                  <button
+                    onClick={() => window.open(currentTrack.redditUrl, '_blank')}
+                    className="text-terminal-muted hover:text-terminal-accent p-0.5"
+                    title="Open current track Reddit thread"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={openCurrentTrackComments}
+                    className="text-terminal-muted hover:text-terminal-accent p-0.5"
+                    title="View comments for current track"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </button>
+                </>
+              )}
               <button
-                onClick={() => window.open(currentTrack.redditUrl, '_blank')}
+                onClick={() => currentTrack && toggleFavorite(currentTrack)}
                 className="text-terminal-muted hover:text-terminal-accent p-0.5"
-                title="Open current track Reddit thread"
+                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
               >
-                <ExternalLink className="w-4 h-4" />
-              </button>
-              <button
-                onClick={openCurrentTrackComments}
-                className="text-terminal-muted hover:text-terminal-accent p-0.5"
-                title="View comments for current track"
-              >
-                <MessageCircle className="w-4 h-4" />
+                <Star className={`w-4 h-4 ${isFavorite ? 'text-yellow-300' : 'text-terminal-muted'}`} fill={isFavorite ? 'currentColor' : 'none'} />
               </button>
             </>
           ) : null
@@ -336,18 +366,17 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-terminal-bg-secondary">
               <div className="text-center space-y-2">
-                <div className="font-mono text-terminal-muted text-3xl mb-2">▶</div>
+                <div className="font-mono text-terminal-muted text-3xl mb-2">{PLAY_ICON}</div>
                 <p className="font-mono text-xs text-terminal-muted">
-                  Select a genre to start
+                  Pick a genre below or
                 </p>
                 <p className="font-mono text-[10px] text-terminal-muted">
-                  or play a{' '}
                   <button
                     onClick={handleRandomGenre}
                     disabled={isLoading}
                     className="text-terminal-accent font-mono text-[10px] border border-terminal-border px-2 py-1 rounded hover:border-terminal-accent disabled:opacity-50"
                   >
-                    random genre
+                    🎲 play a random genre
                   </button>
                 </p>
               </div>
