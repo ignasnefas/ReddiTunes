@@ -9,7 +9,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReddiTunes - Terminal YouTube Player",
+  title: "ReddiTunes - Tune",
   description: "A terminal-inspired YouTube player with Reddit playlist generation",
   keywords: ["youtube", "player", "terminal", "reddit", "music", "vaporwave", "synthwave"],
   authors: [{ name: "ReddiTunes" }],

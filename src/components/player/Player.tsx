@@ -321,11 +321,6 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
         <div className="player-container">
           {currentTrack ? (
             <>
-              {genreLabel && (
-                <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded bg-black/70 text-terminal-accent font-mono text-[10px] uppercase tracking-wider">
-                  {genreLabel}
-                </div>
-              )}
               <div>
                 <YouTube
                   videoId={currentTrack.youtubeId}

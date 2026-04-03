@@ -17,6 +17,7 @@ interface PlaylistItemProps {
   isActive: boolean;
   onPlay: () => void;
   onRemove: () => void;
+  showThumbnail?: boolean;
 }
 
 function PlaylistItemComponent({
@@ -25,6 +26,7 @@ function PlaylistItemComponent({
   isActive,
   onPlay,
   onRemove,
+  showThumbnail = false,
 }: PlaylistItemProps) {
   const [showComments, setShowComments] = useState(false);
 
@@ -64,6 +66,13 @@ function PlaylistItemComponent({
         isActive ? 'bg-terminal-accent/10' : ''
       }`}
     >
+      {showThumbnail && track.youtubeId && (
+        <img
+          src={`https://img.youtube.com/vi/${track.youtubeId}/mqdefault.jpg`}
+          alt="thumb"
+          className="w-6 h-4 object-cover rounded shrink-0"
+        />
+      )}
       {/* Index / Play button */}
       <button onClick={onPlay} className="w-6 h-6 flex items-center justify-center shrink-0">
         {isActive ? (

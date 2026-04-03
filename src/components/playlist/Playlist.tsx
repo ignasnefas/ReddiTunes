@@ -140,6 +140,7 @@ export function Playlist() {
             isActive={isActiveRow}
             onPlay={() => handlePlayTrack(index)}
             onRemove={() => removeTrackFromQueue(track.id)}
+            showThumbnail
           />
         </div>
       );

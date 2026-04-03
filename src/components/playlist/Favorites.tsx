@@ -72,6 +72,7 @@ export function Favorites() {
                     isActive={false}
                     onPlay={() => handlePlayTrack(globalIndex)}
                     onRemove={() => removeFavorite(track.youtubeId)}
+                    showThumbnail
                   />
                 </div>
               );
