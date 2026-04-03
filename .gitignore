@@ -38,4 +38,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# Android / Capacitor
+android/local.properties
+_api_backup_tmp/
+
 next-env.d.ts
