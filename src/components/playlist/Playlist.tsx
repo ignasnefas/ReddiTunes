@@ -51,7 +51,7 @@ export function Playlist() {
     <TerminalWindow
       ref={containerRef}
       tabIndex={0}
-      title={`[QUEUE] ${queue.length} tracks${isShuffled ? ' [S]' : ''}`}
+      title={`${queue.length} tracks${isShuffled ? ' [S]' : ''}`}
       className="h-full flex flex-col"
       headerActions={
         <div className="flex items-center gap-0.5">

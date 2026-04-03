@@ -92,9 +92,9 @@ function PlaylistItemComponent({
         <div className={`truncate ${isActive ? 'text-terminal-accent' : 'text-terminal-text'}`}>
           {truncateText(track.title, 40)}
         </div>
-        {((track.artist && track.artist.length > 0) || (track.genre && track.genre.length > 0)) && (
+        {((track.genre && track.genre.length > 0) || (track.artist && track.artist.length > 0)) && (
           <div className="text-terminal-muted truncate text-[10px]">
-            {[track.artist, track.genre].filter(Boolean).join(' · ')}
+            {[track.genre, track.artist].filter(Boolean).join(' · ')}
           </div>
         )}
       </div>

@@ -47,10 +47,11 @@ export function PlaylistHistory() {
           <div className="flex-1 min-w-0">
             <div className="font-mono text-[11px] text-terminal-text truncate">{entry.track.title}</div>
             <div className="font-mono text-[10px] text-terminal-muted">
-            {entry.track.artist || (entry.track.redditUrl ? 'reddit' : 'YouTube')}
-            {entry.track.genre ? ` • ${entry.track.genre}` : ''}
-            {' • '}{getTimeAgo(entry.playedAt)}
-          </div>
+              {[entry.track.genre, entry.track.artist]
+                .filter(Boolean)
+                .join(' · ') || (entry.track.redditUrl ? 'reddit' : 'YouTube')}
+              {' • '}{getTimeAgo(entry.playedAt)}
+            </div>
           </div>
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
             <button
@@ -91,16 +92,19 @@ export function PlaylistHistory() {
   };
 
   return (
-    <TerminalWindow title="[HISTORY]" className="h-full" headerActions={
-      entries.length > 0 && (
-        <div className="flex items-center gap-0.5">
-          <button onClick={() => clear()} className="p-0.5 text-terminal-muted hover:text-red-400" title="Clear history">
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
-      )
-    }>
+    <TerminalWindow className="h-full" headerActions={null}>
       <div ref={containerRef} className="h-full p-2 space-y-1 overflow-hidden">
+        {entries.length > 0 && (
+          <div className="flex justify-end">
+            <button
+              onClick={() => clear()}
+              className="p-0.5 text-terminal-muted hover:text-red-400"
+              title="Clear history"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         <VirtualList
           className="h-full"
           height={Math.max(listHeight, 100)}

@@ -39,7 +39,7 @@ export function Favorites() {
       suppressHydrationWarning
       ref={containerRef}
       tabIndex={0}
-      title={`[FAVORITES] ${favorites.length} tracks`}
+      title={`${favorites.length} tracks`}
       className="h-full flex flex-col"
       headerActions={
         favorites.length > 0 && (
