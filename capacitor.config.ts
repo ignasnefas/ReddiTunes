@@ -7,6 +7,9 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     backgroundColor: '#0a0a0f',
+    // Keep audio playing in background by not muting WebView audio
+    mediaPlaybackRequiresUserGesture: false,
+    playsinline: true,
   },
   server: {
     androidScheme: 'https',

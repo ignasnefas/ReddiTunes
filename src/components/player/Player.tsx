@@ -104,19 +104,26 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
   }, [currentTrack?.id, isPlaying]);
 
   // Keep trying to resume playback while the page is backgrounded (some emulators/browsers pause audio)
+  // This is especially important on Android where WebView may pause audio when the app goes background
   const bgResumeInterval = useRef<number | null>(null);
   useEffect(() => {
     function startBgResume() {
       if (bgResumeInterval.current != null) return;
+      // More aggressive retry on Android for background audio - try every 500ms
       bgResumeInterval.current = window.setInterval(() => {
         if (playerRef.current && isPlaying) {
           try {
-            playerRef.current.playVideo();
+            const currentState = playerRef.current.getPlayerState?.();
+            // If paused or not playing, try to resume
+            if (currentState !== PLAYER_STATES.PLAYING) {
+              playerRef.current.playVideo();
+              console.log('[Player] Background resume attempt, state was:', currentState);
+            }
           } catch (e) {
             // Ignore - play can be blocked by browser policy
           }
         }
-      }, 1000);
+      }, 500);
     }
     function stopBgResume() {
       if (bgResumeInterval.current != null) {
@@ -127,8 +134,10 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
 
     function onVisibilityChange() {
       if (document.visibilityState === 'hidden') {
+        console.log('[Player] App backgrounded, starting background resume');
         if (isPlaying) startBgResume();
       } else {
+        console.log('[Player] App foregrounded, stopping background resume');
         stopBgResume();
         if (isPlaying && playerRef.current) {
           try {
@@ -152,27 +161,53 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
     };
   }, [isPlaying]);
 
-  // Integrate Media Session (helps some platforms keep playback alive and provides controls)
+  // Integrate Media Session (helps Android keep playback alive and provides lock screen controls)
   useEffect(() => {
     if ('mediaSession' in navigator) {
       try {
+        const nav = navigator as any;
+        
         // Update playback state
-        (navigator as any).mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+        nav.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 
-        // Set basic handlers
-        (navigator as any).mediaSession.setActionHandler?.('play', () => {
+        // Set metadata for lock screen display
+        if (currentTrack) {
+          nav.mediaSession.metadata = new MediaMetadata({
+            title: currentTrack.title,
+            artist: currentTrack.artist || 'Unknown',
+            album: 'ReddiTunes',
+            artwork: [
+              {
+                src: 'https://img.youtube.com/vi/' + currentTrack.youtubeId + '/0.jpg',
+                sizes: '120x90',
+                type: 'image/jpeg',
+              },
+              {
+                src: 'https://img.youtube.com/vi/' + currentTrack.youtubeId + '/1.jpg',
+                sizes: '320x180',
+                type: 'image/jpeg',
+              },
+            ],
+          });
+        }
+
+        // Set action handlers for lock screen controls
+        nav.mediaSession.setActionHandler?.('play', () => {
           usePlayerStore.getState().setIsPlaying(true);
           try { playerRef.current?.playVideo(); } catch {}
         });
-        (navigator as any).mediaSession.setActionHandler?.('pause', () => {
+        nav.mediaSession.setActionHandler?.('pause', () => {
           usePlayerStore.getState().setIsPlaying(false);
           try { playerRef.current?.pauseVideo(); } catch {}
         });
+        nav.mediaSession.setActionHandler?.('nexttrack', () => {
+          nextTrack();
+        });
       } catch (e) {
-        // ignore if mediaSession not fully supported
+        console.warn('[Player] mediaSession setup failed', e);
       }
     }
-  }, [isPlaying]);
+  }, [isPlaying, currentTrack, nextTrack]);
 
   // Start / stop the Android background audio service when playback state changes.
   useEffect(() => {
