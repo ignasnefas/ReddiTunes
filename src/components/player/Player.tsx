@@ -4,7 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { usePlayerStore, usePlaylistStore, useFavoritesStore } from '@/stores';
-import { setBackgroundAudio, updateTrackInfo } from '@/lib/backgroundAudio';
+import { setBackgroundAudio } from '@/lib/backgroundAudio';
 import { GENRES } from '@/constants/genres';
 import { PLAY_ICON } from '@/constants/ascii';
 import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES, YOUTUBE_ERROR_CODES } from '@/lib/youtube';
@@ -73,7 +73,7 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
     }
   }, [currentTrack, isPlaying]);
 
-  // When track changes, load the new video and update Android notification
+  // When track changes, load the new video
   useEffect(() => {
     if (!currentTrack || !playerRef.current) return;
     
@@ -89,9 +89,6 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
         console.warn('[Player] load video failed', e);
       }
     }
-    
-    // Update the Android notification with current track info
-    updateTrackInfo(currentTrack.title, currentTrack.artist || 'Unknown Artist');
   }, [currentTrack?.id, isPlaying]);
 
   // When track changes or user requested play, attempt to start playback
@@ -107,26 +104,19 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
   }, [currentTrack?.id, isPlaying]);
 
   // Keep trying to resume playback while the page is backgrounded (some emulators/browsers pause audio)
-  // This is especially important on Android where WebView may pause audio when the app goes background
   const bgResumeInterval = useRef<number | null>(null);
   useEffect(() => {
     function startBgResume() {
       if (bgResumeInterval.current != null) return;
-      // More aggressive retry on Android for background audio - try every 500ms
       bgResumeInterval.current = window.setInterval(() => {
         if (playerRef.current && isPlaying) {
           try {
-            const currentState = playerRef.current.getPlayerState?.();
-            // If paused or not playing, try to resume
-            if (currentState !== PLAYER_STATES.PLAYING) {
-              playerRef.current.playVideo();
-              console.log('[Player] Background resume attempt, state was:', currentState);
-            }
+            playerRef.current.playVideo();
           } catch (e) {
             // Ignore - play can be blocked by browser policy
           }
         }
-      }, 500);
+      }, 1000);
     }
     function stopBgResume() {
       if (bgResumeInterval.current != null) {
@@ -137,10 +127,8 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
 
     function onVisibilityChange() {
       if (document.visibilityState === 'hidden') {
-        console.log('[Player] App backgrounded, starting background resume');
         if (isPlaying) startBgResume();
       } else {
-        console.log('[Player] App foregrounded, stopping background resume');
         stopBgResume();
         if (isPlaying && playerRef.current) {
           try {
@@ -164,53 +152,27 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
     };
   }, [isPlaying]);
 
-  // Integrate Media Session (helps Android keep playback alive and provides lock screen controls)
+  // Integrate Media Session (helps some platforms keep playback alive and provides controls)
   useEffect(() => {
     if ('mediaSession' in navigator) {
       try {
-        const nav = navigator as any;
-        
         // Update playback state
-        nav.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+        (navigator as any).mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 
-        // Set metadata for lock screen display
-        if (currentTrack) {
-          nav.mediaSession.metadata = new MediaMetadata({
-            title: currentTrack.title,
-            artist: currentTrack.artist || 'Unknown',
-            album: 'ReddiTunes',
-            artwork: [
-              {
-                src: 'https://img.youtube.com/vi/' + currentTrack.youtubeId + '/0.jpg',
-                sizes: '120x90',
-                type: 'image/jpeg',
-              },
-              {
-                src: 'https://img.youtube.com/vi/' + currentTrack.youtubeId + '/1.jpg',
-                sizes: '320x180',
-                type: 'image/jpeg',
-              },
-            ],
-          });
-        }
-
-        // Set action handlers for lock screen controls
-        nav.mediaSession.setActionHandler?.('play', () => {
+        // Set basic handlers
+        (navigator as any).mediaSession.setActionHandler?.('play', () => {
           usePlayerStore.getState().setIsPlaying(true);
           try { playerRef.current?.playVideo(); } catch {}
         });
-        nav.mediaSession.setActionHandler?.('pause', () => {
+        (navigator as any).mediaSession.setActionHandler?.('pause', () => {
           usePlayerStore.getState().setIsPlaying(false);
           try { playerRef.current?.pauseVideo(); } catch {}
         });
-        nav.mediaSession.setActionHandler?.('nexttrack', () => {
-          nextTrack();
-        });
       } catch (e) {
-        console.warn('[Player] mediaSession setup failed', e);
+        // ignore if mediaSession not fully supported
       }
     }
-  }, [isPlaying, currentTrack, nextTrack]);
+  }, [isPlaying]);
 
   // Start / stop the Android background audio service when playback state changes.
   useEffect(() => {

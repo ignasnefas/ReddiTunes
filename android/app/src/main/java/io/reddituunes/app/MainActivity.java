@@ -1,6 +1,5 @@
 package io.reddituunes.app;
 
-import android.content.Intent;
 import android.os.Build;
 
 import com.getcapacitor.BridgeActivity;
@@ -10,27 +9,36 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onPause() {
         super.onPause();
-        // Keep the foreground service running when app goes to background
+        // BridgeActivity.onPause() calls webView.onPause() which freezes JS timers and
+        // pauses media. Counter this immediately so background audio keeps playing.
         if (BackgroundAudioPlugin.isPlaying) {
+            getBridge().getWebView().onResume();
+            getBridge().getWebView().resumeTimers();
             BackgroundAudioService.startService(this);
-            android.util.Log.d("MainActivity", "App paused - keeping background audio service alive");
+            android.util.Log.d("MainActivity", "onPause: resumed WebView for background audio");
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        // Same treatment for onStop to prevent a second WebView suspension
+        if (BackgroundAudioPlugin.isPlaying) {
+            getBridge().getWebView().onResume();
+            getBridge().getWebView().resumeTimers();
+            android.util.Log.d("MainActivity", "onStop: resumed WebView for background audio");
         }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // The app is back in foreground, but keep the service running
-        // Don't stop it immediately to ensure smooth playback transition
-        if (BackgroundAudioPlugin.isPlaying) {
-            // Optionally stop the background service if we want to save resources
-            // For now, we'll keep it running for seamless playback
-        }
+        // Ensure timers are running now that we're foregrounded
+        getBridge().getWebView().resumeTimers();
     }
 
     @Override
     public void onDestroy() {
-        // If app is truly destroyed and music is still playing, keep the service
         if (BackgroundAudioPlugin.isPlaying) {
             BackgroundAudioService.startService(this);
         }
