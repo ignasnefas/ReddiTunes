@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">ReddiTunes</string>
-    <string name="title_activity_main">ReddiTunes</string>
-    <string name="package_name">io.reddituunes.app</string>
-    <string name="custom_url_scheme">io.reddituunes.app</string>
-</resources>
