@@ -42,6 +42,17 @@ public class BackgroundAudioPlugin extends Plugin {
         call.resolve();
     }
 
+    @PluginMethod
+    public void updateTrack(PluginCall call) {
+        String title = call.getString("title", "ReddiTunes");
+        String artist = call.getString("artist", "Now Playing");
+        
+        Context context = getContext();
+        BackgroundAudioService.updateTrack(context, title, artist);
+        
+        call.resolve();
+    }
+
     private static void requestAudioFocus(Context context) {
         if (audioManager == null) {
             audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);

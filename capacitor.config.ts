@@ -10,6 +10,8 @@ const config: CapacitorConfig = {
     // Keep audio playing in background by not muting WebView audio
     mediaPlaybackRequiresUserGesture: false,
     playsinline: true,
+    // Prevent WebView from being suspended
+    persistingClient: true,
   },
   server: {
     androidScheme: 'https',
