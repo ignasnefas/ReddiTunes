@@ -17,8 +17,7 @@
 /.next/
 /out/
 
-# production
-/build
+!android/app/build/outputs/apk/release/*.apk
 
 # misc
 .DS_Store
