@@ -60,6 +60,13 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 to find new music than algorithmic platforms like Spotify, by surfacing
                 tracks that real Reddit communities are sharing.
               </p>
+              <p className="font-mono text-xs text-terminal-muted leading-relaxed mt-2">
+                Android background playback tip: use Firefox + "Desktop site" mode, then
+                start playback and switch apps/lock screen. Optionally add the site to
+                your home screen as a shortcut for faster access.
+                This is the most reliable experience currently, and any better workflow
+                is welcome to share.
+              </p>
             </div>
 
             <div className="mt-4">

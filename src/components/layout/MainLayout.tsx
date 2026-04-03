@@ -21,7 +21,16 @@ type MobileTab = 'genres' | 'queue' | 'history' | 'favorites';
 
 export function MainLayout() {
   const [mobileTab, setMobileTab] = useState<MobileTab>('genres');
+  const [hintDismissed, setHintDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('backgroundPlaybackTipDismissed') === 'true';
+  });
   const helpModal = useHelpModal();
+
+  const isAndroidFirefox =
+    typeof navigator !== 'undefined' &&
+    /Android/i.test(navigator.userAgent) &&
+    /Firefox/i.test(navigator.userAgent);
 
   const tabs: { id: MobileTab; icon: React.ReactNode; label: string }[] = [
     { id: 'genres', icon: <Music className="w-4 h-4" />, label: 'Genres' },
@@ -32,10 +41,34 @@ export function MainLayout() {
 
   const [activeLayout] = useState<'desktop' | 'tablet' | 'mobile'>('mobile');
 
+  const handleDismissHint = () => {
+    setHintDismissed(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('backgroundPlaybackTipDismissed', 'true');
+    }
+  };
+
   return (
     <KeyboardShortcutsProvider>
       <div suppressHydrationWarning className="h-[100svh] flex flex-col overflow-hidden bg-terminal-bg pt-[max(env(safe-area-inset-top),0.5rem)]">
         <TerminalHeader onOpenHelp={helpModal.open} />
+
+        {isAndroidFirefox && !hintDismissed && (
+          <div className="mx-3 mb-2 rounded border border-terminal-border bg-terminal-bg-secondary p-2 text-terminal-text text-[11px] leading-tight">
+            <div className="flex items-start justify-between gap-2">
+              <span>
+                Background play tip: Android Firefox works best. Open browser menu, toggle
+                &quot;Desktop site&quot;, start playback, then switch apps/lock screen.
+              </span>
+              <button
+                className="text-terminal-accent hover:text-terminal-text ml-2"
+                onClick={handleDismissHint}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Desktop Layout (lg+) */}
         <main className="hidden grid flex-1 min-h-0 grid-cols-[280px_1fr_280px]">
