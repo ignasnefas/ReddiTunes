@@ -5,7 +5,7 @@ import { TerminalHeader } from '@/components/terminal';
 import { useHelpModal } from '@/components/ui';
 import dynamic from 'next/dynamic';
 import { KeyboardShortcutsProvider } from '@/hooks';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { List, Star, History, Music } from 'lucide-react';
 import { Loading } from '@/components/ui';
 
@@ -30,12 +30,7 @@ export function MainLayout() {
     { id: 'favorites', icon: <Star className="w-4 h-4" />, label: 'Favorites' },
   ];
 
-  const [activeLayout, setActiveLayout] = useState<'desktop' | 'tablet' | 'mobile'>('mobile');
-
-  // Always use mobile layout
-  useEffect(() => {
-    setActiveLayout('mobile');
-  }, []);
+  const activeLayout: 'desktop' | 'tablet' | 'mobile' = 'mobile';
 
   return (
     <KeyboardShortcutsProvider>

@@ -1,18 +1,28 @@
 'use client';
 
-import React from 'react';
-import { useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { usePlayerStore, usePlaylistStore } from '@/stores';
 import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES, YOUTUBE_ERROR_CODES } from '@/lib/youtube';
 import { TerminalWindow } from '@/components/terminal';
 import { Loading } from '@/components/ui';
+import { ExternalLink, MessageCircle } from 'lucide-react';
+
+const CommentsModal = dynamic(() => import('@/components/ui').then((m) => m.CommentsModal), { ssr: false });
 
 function PlayerComponent({ compact = false }: { compact?: boolean }) {
   const { currentTrack, isLoading, setIsLoading, repeatMode, isPlaying, setIsPlaying } = usePlayerStore();
   const { nextTrack } = usePlaylistStore();
   const playerRef = useRef<YouTubePlayer | null>(null);
   const currentTrackIdRef = useRef<string | null>(null);
+  const [showComments, setShowComments] = useState(false);
+
+  const openCurrentTrackComments = useCallback(() => {
+    if (currentTrack && currentTrack.redditUrl) {
+      setShowComments(true);
+    }
+  }, [currentTrack]);
 
   // Track component lifecycle
   useEffect(() => {
@@ -226,38 +236,90 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
             <div className="min-w-0">
               <div className="font-mono text-[11px] text-terminal-text truncate w-36">{currentTrack.title}</div>
               <div className="font-mono text-[10px] text-terminal-muted truncate w-36">{currentTrack.artist || ''}</div>
+              {currentTrack.redditUrl && (
+                <div className="mt-1 flex gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(currentTrack.redditUrl, '_blank');
+                    }}
+                    className="p-0.5 text-terminal-muted hover:text-terminal-accent"
+                    title="Open current track Reddit thread"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openCurrentTrackComments();
+                    }}
+                    className="p-0.5 text-terminal-muted hover:text-terminal-accent"
+                    title="View comments for current track"
+                  >
+                    <MessageCircle className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
             </div>
           </>
         ) : (
           <div className="font-mono text-[10px] text-terminal-muted">No track</div>
         )}
+
+        <CommentsModal
+          permalink={currentTrack?.redditUrl || ''}
+          title={currentTrack?.title || 'Current Track'}
+          isOpen={showComments}
+          onClose={() => setShowComments(false)}
+        />
       </div>
     );
   }
 
   return (
-    <TerminalWindow 
-      title={currentTrack ? `♪ ${currentTrack.title}` : '♪ NO TRACK'}
-      className="h-full"
-    >
-      <div className="player-container">
-        {currentTrack ? (
-          <>
-            <div>
-              <YouTube
-                videoId={currentTrack.youtubeId}
-                opts={YOUTUBE_PLAYER_OPTIONS}
-                onReady={onReady}
-                onStateChange={onStateChange}
-                onError={onError}
-                className="w-full h-full"
-                iframeClassName="w-full h-full"
-              />
-            </div>
-          </>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-terminal-bg-secondary">
-            <div className="text-center">
+    <>
+      <TerminalWindow 
+        title={currentTrack ? `♪ ${currentTrack.title}` : '♪ NO TRACK'}
+        className="h-full"
+        headerActions={
+          currentTrack?.redditUrl ? (
+            <>
+              <button
+                onClick={() => window.open(currentTrack.redditUrl, '_blank')}
+                className="text-terminal-muted hover:text-terminal-accent p-0.5"
+                title="Open current track Reddit thread"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </button>
+              <button
+                onClick={openCurrentTrackComments}
+                className="text-terminal-muted hover:text-terminal-accent p-0.5"
+                title="View comments for current track"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </button>
+            </>
+          ) : null
+        }
+      >
+        <div className="player-container">
+          {currentTrack ? (
+            <>
+              <div>
+                <YouTube
+                  videoId={currentTrack.youtubeId}
+                  opts={YOUTUBE_PLAYER_OPTIONS}
+                  onReady={onReady}
+                  onStateChange={onStateChange}
+                  onError={onError}
+                  className="w-full h-full"
+                  iframeClassName="w-full h-full"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-terminal-bg-secondary">
+              <div className="text-center">
               <div className="font-mono text-terminal-muted text-3xl mb-2">▶</div>
               <p className="font-mono text-xs text-terminal-muted">
                 Select a genre to start
@@ -267,8 +329,15 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
         )}
       </div>
     </TerminalWindow>
+
+      <CommentsModal
+        permalink={currentTrack?.redditUrl || ''}
+        title={currentTrack?.title || 'Current Track'}
+        isOpen={showComments}
+        onClose={() => setShowComments(false)}
+      />
+    </>
   );
 }
 
 export const Player = React.memo(PlayerComponent);
-
