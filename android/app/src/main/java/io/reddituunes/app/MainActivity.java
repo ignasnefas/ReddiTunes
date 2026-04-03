@@ -11,18 +11,23 @@ public class MainActivity extends BridgeActivity {
         super.onPause();
         // BridgeActivity.onPause() calls webView.onPause() which freezes JS timers and
         // pauses media. Counter this immediately so background audio keeps playing.
-        getBridge().getWebView().onResume();
-        getBridge().getWebView().resumeTimers();
-        android.util.Log.d("MainActivity", "onPause: resumed WebView for background audio");
+        if (BackgroundAudioPlugin.isPlaying) {
+            getBridge().getWebView().onResume();
+            getBridge().getWebView().resumeTimers();
+            BackgroundAudioService.startService(this);
+            android.util.Log.d("MainActivity", "onPause: resumed WebView for background audio");
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
         // Same treatment for onStop to prevent a second WebView suspension
-        getBridge().getWebView().onResume();
-        getBridge().getWebView().resumeTimers();
-        android.util.Log.d("MainActivity", "onStop: resumed WebView for background audio");
+        if (BackgroundAudioPlugin.isPlaying) {
+            getBridge().getWebView().onResume();
+            getBridge().getWebView().resumeTimers();
+            android.util.Log.d("MainActivity", "onStop: resumed WebView for background audio");
+        }
     }
 
     @Override
@@ -34,6 +39,9 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onDestroy() {
+        if (BackgroundAudioPlugin.isPlaying) {
+            BackgroundAudioService.startService(this);
+        }
         super.onDestroy();
     }
 }

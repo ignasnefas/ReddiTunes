@@ -1,5 +1,4 @@
 import { Capacitor } from '@capacitor/core';
-import { backgroundAudioManager } from './backgroundAudioManager';
 
 export async function setBackgroundAudio(playing: boolean) {
   if (!Capacitor.isNativePlatform()) {
@@ -7,16 +6,17 @@ export async function setBackgroundAudio(playing: boolean) {
   }
 
   try {
-    // The background audio manager handles native playback
-    // This function is for API compatibility
-    console.log('[BackgroundAudio] setBackgroundAudio called with playing=' + playing);
-    
-    if (playing && backgroundAudioManager.isInBackgroundAudioMode()) {
-      await backgroundAudioManager.resumeBackgroundAudio();
-    } else if (!playing && backgroundAudioManager.isInBackgroundAudioMode()) {
-      await backgroundAudioManager.pauseBackgroundAudio();
+    const backgroundAudio = (window as any)?.Capacitor?.Plugins?.BackgroundAudio;
+    if (!backgroundAudio) {
+      return;
+    }
+
+    if (playing) {
+      await backgroundAudio.start();
+    } else {
+      await backgroundAudio.stop();
     }
   } catch (error) {
-    console.warn('[BackgroundAudio] Error:', error);
+    console.warn('[BackgroundAudio] mobile plugin error', error);
   }
 }

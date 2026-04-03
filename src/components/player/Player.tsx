@@ -5,14 +5,12 @@ import dynamic from 'next/dynamic';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { usePlayerStore, usePlaylistStore, useFavoritesStore } from '@/stores';
 import { setBackgroundAudio } from '@/lib/backgroundAudio';
-import { backgroundAudioManager } from '@/lib/backgroundAudioManager';
-import { Capacitor } from '@capacitor/core';
 import { GENRES } from '@/constants/genres';
 import { PLAY_ICON } from '@/constants/ascii';
 import { YOUTUBE_PLAYER_OPTIONS, PLAYER_STATES, YOUTUBE_ERROR_CODES } from '@/lib/youtube';
 import { TerminalWindow } from '@/components/terminal';
 import { Loading } from '@/components/ui';
-import { ExternalLink, MessageCircle, Star, Radio } from 'lucide-react';
+import { ExternalLink, MessageCircle, Star } from 'lucide-react';
 
 const CommentsModal = dynamic(() => import('@/components/ui').then((m) => m.CommentsModal), { ssr: false });
 
@@ -37,52 +35,12 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
     setIsPlaying(true);
   }, [generatePlaylist, setIsPlaying]);
   const [showComments, setShowComments] = useState(false);
-  const [backgroundMode, setBackgroundMode] = useState(false);
 
   const openCurrentTrackComments = useCallback(() => {
     if (currentTrack && currentTrack.redditUrl) {
       setShowComments(true);
     }
   }, [currentTrack]);
-
-  const toggleBackgroundMode = useCallback(async () => {
-    if (!currentTrack || !Capacitor.isNativePlatform()) {
-      console.warn('[Player] Background mode unavailable on this platform');
-      return;
-    }
-
-    try {
-      if (backgroundMode) {
-        // Exit background mode
-        console.log('[Player] Exiting background mode');
-        await backgroundAudioManager.stopBackgroundAudio();
-        setBackgroundMode(false);
-        // Resume YouTube playback
-        if (isPlaying && playerRef.current) {
-          playerRef.current.playVideo();
-        }
-      } else {
-        // Enter background mode
-        console.log('[Player] Entering background mode');
-        const position = playerRef.current?.getCurrentTime?.() || 0;
-        const success = await backgroundAudioManager.startBackgroundAudio(
-          currentTrack.youtubeId,
-          position * 1000 // Convert seconds to ms
-        );
-        if (success) {
-          setBackgroundMode(true);
-          // Pause YouTube to save resources
-          if (playerRef.current) {
-            playerRef.current.pauseVideo();
-          }
-        } else {
-          console.error('[Player] Failed to start background audio');
-        }
-      }
-    } catch (error) {
-      console.error('[Player] Error toggling background mode:', error);
-    }
-  }, [currentTrack, backgroundMode, isPlaying]);
 
   // Track component lifecycle
   useEffect(() => {
@@ -167,48 +125,12 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
       }
     }
 
-    async function onVisibilityChange() {
+    function onVisibilityChange() {
       if (document.visibilityState === 'hidden') {
-        if (isPlaying && currentTrack && Capacitor.isNativePlatform()) {
-          // Try to start native background audio on Android
-          try {
-            const position = playerRef.current?.getCurrentTime?.() || 0;
-            const success = await backgroundAudioManager.startBackgroundAudio(
-              currentTrack.youtubeId,
-              position * 1000 // Convert seconds to ms
-            );
-            if (success) {
-              console.log('[Player] Native background audio started');
-              // Don't use bgResume if native player is active
-              return;
-            }
-          } catch (error) {
-            console.warn('[Player] Failed to start native background audio:', error);
-          }
-        }
-        
         if (isPlaying) startBgResume();
       } else {
         stopBgResume();
-        
-        // Stop native background audio when app comes to foreground
-        if (backgroundAudioManager.isInBackgroundAudioMode()) {
-          try {
-            const bgPosition = await backgroundAudioManager.getBackgroundAudioPosition();
-            await backgroundAudioManager.stopBackgroundAudio();
-            
-            // Resume YouTube player at the position we were at in native player
-            if (playerRef.current && currentTrack) {
-              playerRef.current.loadVideoById(currentTrack.youtubeId);
-              playerRef.current.seekTo(bgPosition / 1000); // Convert ms to seconds
-              if (isPlaying) {
-                playerRef.current.playVideo();
-              }
-            }
-          } catch (error) {
-            console.warn('[Player] Error switching from native player:', error);
-          }
-        } else if (isPlaying && playerRef.current) {
+        if (isPlaying && playerRef.current) {
           try {
             playerRef.current.playVideo();
           } catch (e) {
@@ -228,7 +150,7 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
       document.removeEventListener('visibilitychange', onVisibilityChange);
       stopBgResume();
     };
-  }, [isPlaying, currentTrack]);
+  }, [isPlaying]);
 
   // Integrate Media Session (helps some platforms keep playback alive and provides controls)
   useEffect(() => {
@@ -403,17 +325,6 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
         headerActions={
           currentTrack ? (
             <>
-              {Capacitor.isNativePlatform() && (
-                <button
-                  onClick={toggleBackgroundMode}
-                  className={`text-terminal-muted hover:text-terminal-accent p-0.5 transition ${
-                    backgroundMode ? 'text-terminal-accent' : ''
-                  }`}
-                  title={backgroundMode ? 'Exit background mode' : 'Enter background mode (continues in background)'}
-                >
-                  <Radio className={`w-4 h-4 ${backgroundMode ? 'fill-terminal-accent' : ''}`} />
-                </button>
-              )}
               {currentTrack.redditUrl && (
                 <>
                   <button
@@ -446,38 +357,17 @@ function PlayerComponent({ compact = false }: { compact?: boolean }) {
         <div className="player-container">
           {currentTrack ? (
             <>
-              {backgroundMode ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-terminal-bg-secondary flex-col gap-4">
-                  <div className="text-center space-y-2">
-                    <div className="font-mono text-terminal-accent text-4xl mb-4">📻</div>
-                    <p className="font-mono text-terminal-text font-bold text-lg">Background Mode</p>
-                    <p className="font-mono text-terminal-muted text-sm">
-                      Playing in background
-                    </p>
-                    <p className="font-mono text-terminal-muted text-xs mt-4 max-w-xs">
-                      {currentTrack.title}
-                    </p>
-                  </div>
-                  <button
-                    onClick={toggleBackgroundMode}
-                    className="font-mono text-[11px] text-terminal-accent border border-terminal-accent px-3 py-2 rounded hover:bg-terminal-accent hover:text-terminal-bg transition"
-                  >
-                    Exit Background Mode
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <YouTube
-                    videoId={currentTrack.youtubeId}
-                    opts={YOUTUBE_PLAYER_OPTIONS}
-                    onReady={onReady}
-                    onStateChange={onStateChange}
-                    onError={onError}
-                    className="w-full h-full"
-                    iframeClassName="w-full h-full"
-                  />
-                </div>
-              )}
+              <div>
+                <YouTube
+                  videoId={currentTrack.youtubeId}
+                  opts={YOUTUBE_PLAYER_OPTIONS}
+                  onReady={onReady}
+                  onStateChange={onStateChange}
+                  onError={onError}
+                  className="w-full h-full"
+                  iframeClassName="w-full h-full"
+                />
+              </div>
             </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-terminal-bg-secondary">
