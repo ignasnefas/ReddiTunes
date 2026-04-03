@@ -141,10 +141,11 @@ iframe {
   justify-content: center;
 }
 
-/* On large screens keep the player even smaller so it doesn't not dominate the layout */
+/* On large screens keep the player even smaller so it doesn't dominate the layout */
 @media (min-width: 1024px) {
   .player-container {
-    max-height: 220px;
+    /* Slightly shorter on desktop to avoid clipping embedded controls in some layouts */
+    max-height: 200px;
   }
 }
 
