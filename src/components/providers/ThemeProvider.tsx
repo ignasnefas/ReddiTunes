@@ -6,6 +6,7 @@ import { useThemeStore } from '@/stores';
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { theme } = useThemeStore();
   const [mounted, setMounted] = useState(false);
+  const isDev = process.env.NODE_ENV !== 'production';
 
   useEffect(() => {
     setMounted(true);
@@ -25,9 +26,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       navigator.serviceWorker
         .register('/service-worker.js')
         .then((reg) => {
-          console.log('Service worker registered.', reg);
+          if (isDev) {
+            console.log('Service worker registered.', reg);
+          }
 
-          if (reg.waiting) {
+          if (reg.waiting && isDev) {
             console.log('New service worker is waiting to activate.');
           }
 
@@ -38,10 +41,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
                 if (installing.state === 'installed') {
                   if (navigator.serviceWorker.controller) {
                     // New content available
-                    console.log('New content available; please refresh.');
+                    if (isDev) {
+                      console.log('New content available; please refresh.');
+                    }
                   } else {
                     // Content cached for offline use
-                    console.log('Content cached for offline use.');
+                    if (isDev) {
+                      console.log('Content cached for offline use.');
+                    }
                   }
                 }
               };

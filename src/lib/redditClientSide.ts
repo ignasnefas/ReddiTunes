@@ -6,6 +6,7 @@
 'use client';
 
 const REDDIT_BASE = 'https://www.reddit.com';
+const isDev = process.env.NODE_ENV !== 'production';
 
 function sleep(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
@@ -88,7 +89,9 @@ async function fetchRedditDirect(
         expiry: Date.now() + 30000,
       });
 
-      console.log(`[Reddit] Fetched ${url.split('?')[0]} (attempt ${attempt})`);
+      if (isDev) {
+        console.log(`[Reddit] Fetched ${url.split('?')[0]} (attempt ${attempt})`);
+      }
       return json;
     } catch (err) {
       if (attempt >= maxAttempts) {
@@ -138,7 +141,9 @@ export async function fetchCommentsJsonClient(
  */
 export function clearRedditCache() {
   clientCache.clear();
-  console.log('[Reddit] Cache cleared');
+  if (isDev) {
+    console.log('[Reddit] Cache cleared');
+  }
 }
 
 /**
