@@ -1,7 +1,8 @@
-const CACHE_NAME = 'redditunes-cache-v1';
+const CACHE_NAME = 'redditunes-cache-v2';
 const PRECACHE_URLS = [
   '/',
   '/offline.html',
+  '/favicon.ico?v=2',
   '/icons/icon-192.svg',
   '/icons/icon-512.svg',
 ];
