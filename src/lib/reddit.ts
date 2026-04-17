@@ -4,55 +4,27 @@ import { RedditPost, Track, SortOption, TimeFilter, RedditComment } from '@/type
 import { extractYouTubeId, cleanTitle, generateId, getYouTubeThumbnail } from './utils';
 
 const REDDIT_BASE_URL = 'https://www.reddit.com';
-const IS_CLIENT = typeof window !== 'undefined';
 
 // Bot usernames to filter out
 const BOT_USERNAMES = new Set(['MusicMirrorMan', 'Listige']);
 
-/**
- * Use client-side fetching when available to bypass Vercel IP blocks
- */
 async function fetchRedditApi(url: string) {
-  if (IS_CLIENT) {
-    // Client-side: fetch directly from browser with user's IP
-    try {
-      const { fetchSubredditJsonClient, fetchCommentsJsonClient } = await import('./redditClientSide');
-      
-      // Parse URL to determine which client function to use
-      if (url.includes('/comments/')) {
-        // Extract subreddit and postId from URL
-        const match = url.match(/\/api\/reddit\/([^/]+)\/comments\/([^/?]+)/);
-        if (match) {
-          const [, subreddit, postId] = match;
-          return fetchCommentsJsonClient(subreddit, postId);
-        }
-      } else {
-        // Extract subreddit and params from URL
-        const match = url.match(/\/api\/reddit\/([^/?]+)\?(.+)/);
-        if (match) {
-          const [, subreddit, queryString] = match;
-          const params = new URLSearchParams(queryString);
-          return fetchSubredditJsonClient(
-            subreddit,
-            params.get('sort') || 'hot',
-            params.get('t') || 'week',
-            Number(params.get('limit') || '100'),
-            params.get('after') || undefined
-          );
-        }
-      }
-    } catch (err) {
-      console.error('[Reddit] Client-side fetch failed, falling back to API route:', err);
-    }
-  }
-  
-  // Server-side or fallback: use API route
+  // Always use the local API route in the browser.
+  // Reddit blocks browser-origin fetches with CORS, so direct client-side calls are not reliable.
   const response = await fetch(url);
   if (!response.ok) {
     const body = await response.text().catch(() => '');
     throw new Error(`Failed to fetch: ${response.status} ${body}`);
   }
-  return response.json();
+
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    throw new Error(
+      `Invalid JSON response from ${url}: ${err instanceof Error ? err.message : String(err)}\n${text.slice(0, 200)}`
+    );
+  }
 }
 
 export async function fetchSubredditPosts(

@@ -98,7 +98,23 @@ async function fetchWithRetries(url: string, opts: RequestInit = {}, ttl = 30_00
           }
         }
 
-        const json = await res.json();
+        const contentType = res.headers.get('content-type') || '';
+        const body = await res.text().catch(() => '');
+
+        if (!contentType.includes('application/json')) {
+          throw new Error(
+            `Unexpected Reddit response content type: ${contentType || 'unknown'}. Body: ${body.slice(0, 200)}`
+          );
+        }
+
+        let json;
+        try {
+          json = JSON.parse(body);
+        } catch (parseErr) {
+          throw new Error(
+            `Failed to parse Reddit JSON response: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}. Body: ${body.slice(0, 200)}`
+          );
+        }
 
         // Cache result
         cache.set(key, json, { ttl });
