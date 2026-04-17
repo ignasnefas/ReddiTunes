@@ -40,6 +40,11 @@ async function fetchRedditDirect(
 
       const response = await fetch(url, {
         signal: controller.signal,
+        mode: 'cors',
+        credentials: 'omit',
+        headers: {
+          Accept: 'application/json',
+        },
       });
 
       clearTimeout(timeoutId);
