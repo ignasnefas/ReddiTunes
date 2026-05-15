@@ -1,14 +1,48 @@
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
-const isDev = process.env.NODE_ENV === 'development';
-const handleSquirrelEvent = require('electron-squirrel-startup');
-
-// Handle squirrel installer events on Windows
-if (handleSquirrelEvent()) {
-  app.quit();
-}
+const { spawn } = require('child_process');
+const isDev = process.env.NODE_ENV === 'development' || process.defaultApp;
 
 let mainWindow;
+let serverProcess;
+
+const startServer = () => {
+  return new Promise((resolve) => {
+    if (isDev) {
+      console.log(`[Main] Development mode - skipping server startup`);
+      resolve();
+      return;
+    }
+
+    console.log(`[Main] Starting HTTP server for production...`);
+    
+    // Start simple HTTP server with app path
+    const serverPath = path.join(__dirname, 'server.js');
+    
+    // In production, out/ is next to electron/ in the packaged app
+    const outPath = path.join(__dirname, '..', 'out');
+    
+    console.log(`[Main] Server script: ${serverPath}`);
+    console.log(`[Main] Out directory: ${outPath}`);
+    
+    serverProcess = spawn(process.execPath, [serverPath, outPath], {
+      stdio: 'inherit', // Use 'inherit' to see server logs
+      detached: true,
+    });
+
+    serverProcess.on('error', (err) => {
+      console.error(`[Main] Failed to start server:`, err);
+    });
+
+    console.log(`[Main] Server process started (PID: ${serverProcess.pid})`);
+    serverProcess.unref();
+
+    setTimeout(() => {
+      console.log(`[Main] Waiting for server to be ready...`);
+      resolve();
+    }, 1000);
+  });
+};
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -27,9 +61,24 @@ const createWindow = () => {
 
   const startUrl = isDev
     ? 'http://localhost:3000'
-    : `file://${path.join(__dirname, '../out/index.html')}`;
+    : 'http://localhost:3001';
 
-  mainWindow.loadURL(startUrl);
+  console.log(`[Main] Loading URL: ${startUrl}`);
+  mainWindow.loadURL(startUrl).catch(err => {
+    console.error(`[Main] Error loading URL:`, err);
+  });
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log(`[Main] Page finished loading`);
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error(`[Main] Failed to load: ${errorCode} ${errorDescription}`);
+  });
+
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`[Renderer] [${level}] ${message}`);
+  });
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
@@ -40,9 +89,17 @@ const createWindow = () => {
   });
 };
 
-app.on('ready', createWindow);
+app.on('ready', async () => {
+  await startServer();
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
+  if (serverProcess) {
+    try {
+      process.kill(-serverProcess.pid);
+    } catch (e) {}
+  }
   if (process.platform !== 'darwin') {
     app.quit();
   }

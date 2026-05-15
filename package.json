@@ -7,9 +7,9 @@
   "homepage": "./",
   "scripts": {
     "dev": "next dev",
-    "dev:electron": "concurrently \"next dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "dev:electron": "cross-env NODE_ENV=development concurrently \"next dev\" \"wait-on http://localhost:3000 && electron .\"",
     "build": "next build",
-    "build:web": "next build && next export",
+    "build:web": "next build",
     "build:electron": "next build && electron-builder",
     "build:electron:win": "next build && electron-builder --win",
     "build:electron:all": "next build && electron-builder --publish never",
@@ -19,7 +19,7 @@
     "cap:sync": "npx cap sync android",
     "cap:open": "npx cap open android",
     "preelectron-dev": "npm run build",
-    "electron-dev": "electron .",
+    "electron-dev": "cross-env NODE_ENV=development electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
   },
@@ -38,15 +38,15 @@
     "react-window": "^1.8.8",
     "react-youtube": "^10.1.0",
     "ytdl-core": "^4.11.5",
-    "zustand": "^5.0.9",
-    "electron-squirrel-startup": "^1.1.1"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@oncurrently": "^8.2.2",
+    "@types/react-window": "^1.8.6",
+    "concurrently": "^8.2.2",
     "cross-env": "^10.1.0",
     "electron": "^33.0.0",
     "electron-builder": "^25.1.8",
@@ -66,6 +66,7 @@
     "files": [
       "electron/main.js",
       "electron/preload.js",
+      "electron/server.js",
       "out/**/*",
       "public/**/*",
       "package.json"
@@ -99,9 +100,6 @@
       "createStartMenuShortcut": true,
       "shortcutName": "ReddiTunes"
     },
-    "portable": {
-      "artifactName": "ReddiTunes-${version}-portable.exe"
-    }",
-    "typescript": "^5"
+    "portable": {}
   }
 }

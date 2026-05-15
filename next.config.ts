@@ -1,10 +1,10 @@
 import type { NextConfig } from "next";
 
 const isAndroidBuild = process.env.BUILD_TARGET === 'android';
-const isElectronBuild = process.env.ELECTRON_BUILD === 'true';
+const isElectronBuild = process.env.npm_lifecycle_event?.includes('electron');
 
 const nextConfig: NextConfig = {
-  // Static export for Capacitor Android build and Electron
+  // Static export for Android and Electron builds
   ...(isAndroidBuild || isElectronBuild ? {
     output: 'export',
     distDir: 'out',
@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
   // Optimize for production build
   productionBrowserSourceMaps: false,
   
-  // Configure headers for API routes (only active in non-static mode)
+  // Configure headers for API routes (only in server mode)
   ...(!isAndroidBuild && !isElectronBuild && {
     async headers() {
       return [
