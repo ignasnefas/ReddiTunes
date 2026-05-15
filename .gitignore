@@ -16,6 +16,7 @@
 # next.js
 /.next/
 /out/
+/dist/
 
 !android/app/build/outputs/apk/release/*.apk
 
@@ -41,5 +42,14 @@ yarn-error.log*
 # Android / Capacitor
 android/local.properties
 _api_backup_tmp/
+
+# Electron / Build artifacts
+/dist/
+*.exe
+*.msi
+*.dmg
+*.zip
+*.AppImage
+*.deb
 
 next-env.d.ts

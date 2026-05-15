@@ -2,6 +2,22 @@
 
 A retro terminal/ASCII/Winamp-inspired YouTube player that generates playlists dynamically from music subreddits.
 
+**Available for:**
+- 🌐 Web (Browser)
+- 🖥️ Windows (Desktop - Electron)
+- 📱 Android (Mobile)
+
+## Downloads
+
+Latest releases available on [GitHub Releases](https://github.com/YOUR_USERNAME/ReddiTunes/releases)
+
+### Windows Desktop
+- **ReddiTunes-x.x.x.exe** - Installer (recommended)
+- **ReddiTunes-x.x.x-portable.exe** - Portable (no installation needed)
+
+### Web
+Visit: [https://reddituunes.vercel.app](https://reddituunes.vercel.app)
+
 ## Features
 
 - 🎵 **Reddit-Powered Playlists**: Automatically fetch YouTube music from genre-specific subreddits
@@ -34,12 +50,16 @@ A retro terminal/ASCII/Winamp-inspired YouTube player that generates playlists d
 
 ## Getting Started
 
-### Prerequisites
+### For Users
+Download the latest release from [GitHub Releases](https://github.com/YOUR_USERNAME/ReddiTunes/releases) for your platform.
 
+### For Developers
+
+#### Prerequisites
 - Node.js 18+
 - npm or yarn
 
-### Installation
+#### Installation & Development
 
 ```bash
 # Install dependencies
@@ -50,6 +70,25 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Building for Production
+
+See [PRODUCTION_SETUP.md](PRODUCTION_SETUP.md) for detailed build instructions.
+
+### Quick Build Commands
+
+```bash
+# Web version
+npm run build:web
+
+# Electron (Windows)
+npm run build:electron:win
+
+# All versions
+npm run build:electron:all
+```
+
+## Development Commands
 
 ## Keyboard Shortcuts
 

@@ -1,15 +1,27 @@
 {
   "name": "reddituunes",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "Terminal YouTube Player - Fetch music from subreddits",
+  "author": "Your Name",
+  "main": "electron/main.js",
+  "homepage": "./",
   "scripts": {
     "dev": "next dev",
+    "dev:electron": "concurrently \"next dev\" \"wait-on http://localhost:3000 && electron .\"",
     "build": "next build",
+    "build:web": "next build && next export",
+    "build:electron": "next build && electron-builder",
+    "build:electron:win": "next build && electron-builder --win",
+    "build:electron:all": "next build && electron-builder --publish never",
     "build:android": "node scripts/build-android.mjs",
     "start": "next start",
     "lint": "eslint",
     "cap:sync": "npx cap sync android",
-    "cap:open": "npx cap open android"
+    "cap:open": "npx cap open android",
+    "preelectron-dev": "npm run build",
+    "electron-dev": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.0",
@@ -26,18 +38,70 @@
     "react-window": "^1.8.8",
     "react-youtube": "^10.1.0",
     "ytdl-core": "^4.11.5",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.9",
+    "electron-squirrel-startup": "^1.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/react-window": "^1.8.6",
+    "@oncurrently": "^8.2.2",
     "cross-env": "^10.1.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
+    "typescript": "^5",
+    "wait-on": "^7.1.0"
+  },
+  "build": {
+    "appId": "com.reddituunes.app",
+    "productName": "ReddiTunes",
+    "directories": {
+      "buildResources": "electron/assets",
+      "output": "dist"
+    },
+    "files": [
+      "electron/main.js",
+      "electron/preload.js",
+      "out/**/*",
+      "public/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "certificateFile": null,
+      "certificatePassword": null,
+      "signingHashAlgorithms": [
+        "sha256"
+      ],
+      "sign": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ReddiTunes"
+    },
+    "portable": {
+      "artifactName": "ReddiTunes-${version}-portable.exe"
+    }",
     "typescript": "^5"
   }
 }
