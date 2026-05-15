@@ -27,12 +27,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Next.js app
-        run: npm run build:web
-
-      - name: Export Next.js app
-        run: npx next export
-
       - name: Build Electron app for Windows
         run: npm run build:electron:win
 
