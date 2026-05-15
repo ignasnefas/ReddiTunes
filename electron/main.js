@@ -1,47 +1,21 @@
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
-const { spawn } = require('child_process');
-const isDev = process.env.NODE_ENV === 'development' || process.defaultApp;
+const { startServer: createServer } = require('./server');
+const isDev = process.env.NODE_ENV === 'development' || process.defaultApp || !app.isPackaged;
 
 let mainWindow;
-let serverProcess;
+let serverInstance;
 
 const startServer = () => {
-  return new Promise((resolve) => {
-    if (isDev) {
-      console.log(`[Main] Development mode - skipping server startup`);
-      resolve();
-      return;
-    }
+  if (isDev) {
+    console.log(`[Main] Development mode - skipping server startup`);
+    return Promise.resolve();
+  }
 
-    console.log(`[Main] Starting HTTP server for production...`);
-    
-    // Start simple HTTP server with app path
-    const serverPath = path.join(__dirname, 'server.js');
-    
-    // In production, out/ is next to electron/ in the packaged app
-    const outPath = path.join(__dirname, '..', 'out');
-    
-    console.log(`[Main] Server script: ${serverPath}`);
-    console.log(`[Main] Out directory: ${outPath}`);
-    
-    serverProcess = spawn(process.execPath, [serverPath, outPath], {
-      stdio: 'inherit', // Use 'inherit' to see server logs
-      detached: true,
-    });
-
-    serverProcess.on('error', (err) => {
-      console.error(`[Main] Failed to start server:`, err);
-    });
-
-    console.log(`[Main] Server process started (PID: ${serverProcess.pid})`);
-    serverProcess.unref();
-
-    setTimeout(() => {
-      console.log(`[Main] Waiting for server to be ready...`);
-      resolve();
-    }, 1000);
-  });
+  console.log(`[Main] Starting HTTP server for production...`);
+  const appPath = path.join(__dirname, '..');
+  serverInstance = createServer({ appPath });
+  return Promise.resolve();
 };
 
 const createWindow = () => {
@@ -95,10 +69,12 @@ app.on('ready', async () => {
 });
 
 app.on('window-all-closed', () => {
-  if (serverProcess) {
+  if (serverInstance) {
     try {
-      process.kill(-serverProcess.pid);
-    } catch (e) {}
+      serverInstance.close();
+    } catch (e) {
+      console.error('[Main] Error closing server instance:', e);
+    }
   }
   if (process.platform !== 'darwin') {
     app.quit();

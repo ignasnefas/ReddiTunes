@@ -1,12 +1,15 @@
-name: Build and Release
+name: Build and Publish Release
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*.*.*'
+  release:
+    types: [published]
 
 jobs:
-  build:
+  build-release:
     runs-on: windows-latest
     strategy:
       matrix:
@@ -25,29 +28,24 @@ jobs:
         run: npm ci
 
       - name: Build Next.js app
-        run: npm run build
+        run: npm run build:web
 
       - name: Export Next.js app
         run: npx next export
 
-      - name: Build Electron app
+      - name: Build Electron app for Windows
         run: npm run build:electron:win
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get version from tag
-        id: tag_name
-        run: |
-          $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
-          echo "VERSION=$VERSION" >> $env:GITHUB_OUTPUT
-        shell: powershell
-
-      - name: Create Release
+      - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event.release.tag_name || github.ref_name }}
+          name: ${{ github.event.release.name || github.ref_name }}
           draft: false
           prerelease: false
-          files: dist/*
-          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.yml
         env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
