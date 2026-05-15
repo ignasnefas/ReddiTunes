@@ -14,9 +14,15 @@ permissions:
 jobs:
   build-release:
     runs-on: windows-latest
+    concurrency:
+      group: release-${{ github.event.release.tag_name || github.ref_name }}
+      cancel-in-progress: true
     strategy:
       matrix:
         node-version: [22.x]
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -40,11 +46,5 @@ jobs:
           name: ${{ github.event.release.name || github.ref_name }}
           draft: false
           prerelease: false
-          files: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.yml
+          files: dist/*
           token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
