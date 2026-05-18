@@ -2,7 +2,7 @@
 
 import { ThemeToggle } from '@/components/ui';
 import { useEffect, useState } from 'react';
-import { Radio, Globe, HelpCircle } from 'lucide-react';
+import { Radio, Globe, HelpCircle, Download } from 'lucide-react';
 
 interface TerminalHeaderProps {
   onOpenHelp?: () => void;
@@ -35,6 +35,15 @@ export function TerminalHeader({ onOpenHelp }: TerminalHeaderProps) {
         {/* Right side */}
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] text-terminal-muted hidden sm:block">{time}</span>
+
+          {/* Download desktop app */}
+          <button
+            onClick={() => window.open('https://github.com/neetfrog/ReddiTunes/releases', '_blank')}
+            className="p-2 rounded border border-terminal-border hover:bg-terminal-hover transition-colors"
+            title="Download desktop app"
+          >
+            <Download className="w-4 h-4 text-terminal-accent" suppressHydrationWarning />
+          </button>
 
           {/* External site */}
           <button
