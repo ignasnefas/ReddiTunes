@@ -1,4 +1,4 @@
-# ReddiTunes - Terminal YouTube Player
+# ReddiTunes
 
 A retro terminal/ASCII/Winamp-inspired YouTube player that generates playlists dynamically from music subreddits.
 
