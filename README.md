@@ -2,6 +2,8 @@
 
 A retro terminal/ASCII/Winamp-inspired YouTube player that generates playlists dynamically from music subreddits.
 
+![ReddiTunes screenshot](public/screenshot.png)
+
 **Available for:**
 - 🌐 Web (Browser)
 - 🖥️ Windows (Desktop - Electron)
